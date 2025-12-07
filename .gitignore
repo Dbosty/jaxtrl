@@ -6,6 +6,7 @@
 **/*.pkl
 weights
 conf/env_var/proj.yaml
+outputs
 
 
 # mac
