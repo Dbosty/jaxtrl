@@ -1,0 +1,18 @@
+total_timesteps: 100_000
+
+batch:
+  timesteps_per_env: 1_000
+  num_envs: 1
+
+visualize:
+  freq: 0
+  timesteps: 50
+  fps: 50
+
+save:
+  freq: 0
+
+wandb:
+  sync_tensorboard: True
+  offline: True
+  mode: disabled

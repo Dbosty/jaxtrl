@@ -1,0 +1,8 @@
+defaults:
+  - train: ppo
+  - collect: base
+  - env_var: proj
+  - _self_
+
+seed: null
+device: cuda
