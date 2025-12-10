@@ -1,5 +1,3 @@
-import logging
-
 import hydra
 import jax
 import jax.numpy as jnp
@@ -13,14 +11,12 @@ from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp
 from pgj.jaxtrl.policy import GreedyPolicy
 from pgj.jaxtrl.reward import SparseEvader, SparsePursuer
 
+from jaxtrl.rl.ppo.trainer import PPOTrainer
 from jaxtrl.sim import Sim
 from jaxtrl.sim.collect import collect_factory
 from jaxtrl.sim.policy import PolicyAggregator, RandomPolicy
 from jaxtrl.utils.logger import ExtWandbLogger
 from jaxtrl.utils.tensordict import transitions_to_tensordicts
-from jaxtrl.utils.trainer import RLTrainer
-
-log = logging.getLogger(__name__)
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
@@ -53,7 +49,7 @@ def main(cfg):
 
     key, trainer_key, policy_key = jax.random.split(key, 3)
 
-    trainer = RLTrainer(agents[0], cfg.train, trainer_key, device=cfg.device)
+    trainer = PPOTrainer(agents[0], cfg.train, trainer_key, device=cfg.device)
 
     policy = PolicyAggregator(
         [
@@ -95,7 +91,7 @@ def main(cfg):
         total_frames += transitions.step_count.size
 
         # train
-        log_dict, total_frames = trainer.step(tds[0])
+        log_dict = trainer.step(tds[0])
 
         log_dict.update(
             {

@@ -1,7 +1,7 @@
 total_timesteps: 100_000_000
 
 batch:
-  timesteps_per_env: 10_000
+  timesteps_per_env: 100
   num_envs: 100
 
 visualize:

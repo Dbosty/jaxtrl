@@ -1,8 +1,6 @@
-import gc
 from dataclasses import dataclass
 
 import torch as th
-from torchrl.modules import set_recurrent_mode
 from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
 
@@ -37,7 +35,6 @@ class PPO:
         **hp,
     ):
         self.device = device or "cpu"
-        self.total_frames = 0
 
         self.actor = actor
         self.critic = critic
@@ -125,8 +122,6 @@ class PPO:
                 final_loss_value = loss_value.detach()
                 final_loss_vals = {k: v.detach() for k, v in loss_vals.items()}
 
-        self.total_frames += td.shape[0]
-
         # Use original_td for logging to avoid holding references to modified tensordict
         log_dict = self._log_dict(td)
 
@@ -149,7 +144,7 @@ class PPO:
                     }
                 )
 
-        return log_dict, self.total_frames
+        return log_dict
 
     def _log_dict(self, tensordict_data):
         done = tensordict_data.get(("next", "done"))

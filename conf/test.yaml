@@ -1,7 +1,7 @@
 defaults:
   - train: ppo
   - collect: test
-  - env_var: proj
+  - env_var: dummy
   - _self_
 
 seed: null
