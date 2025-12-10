@@ -1,0 +1,8 @@
+defaults:
+  - train: ppo
+  - collect: test
+  - env_var: proj
+  - _self_
+
+seed: null
+device: cpu

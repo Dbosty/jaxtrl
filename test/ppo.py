@@ -2,6 +2,7 @@ import logging
 
 import hydra
 import jax
+import jax.numpy as jnp
 import numpy as np
 import torch as th
 from omegaconf import DictConfig, OmegaConf
@@ -9,8 +10,14 @@ from omegaconf import DictConfig, OmegaConf
 #
 from pgj.env import ODEnv
 from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp
+from pgj.jaxtrl.policy import GreedyPolicy
 from pgj.jaxtrl.reward import SparseEvader, SparsePursuer
 
+from jaxtrl.sim import Sim
+from jaxtrl.sim.collect import collect_factory
+from jaxtrl.sim.policy import PolicyAggregator, RandomPolicy
+from jaxtrl.utils.logger import ExtWandbLogger
+from jaxtrl.utils.tensordict import transitions_to_tensordicts
 from jaxtrl.utils.trainer import RLTrainer
 
 log = logging.getLogger(__name__)
@@ -23,7 +30,9 @@ def main(cfg):
 
     key = jax.random.key(cfg.seed)
 
-    key, np_seed, th_seed = jax.random.split(key, 3)
+    key, seed_key = jax.random.split(key)
+
+    np_seed, th_seed = jax.random.randint(seed_key, (2,), 0, 2**16 - 1)
 
     np.random.seed(np_seed)
     th.manual_seed(th_seed)
@@ -46,8 +55,62 @@ def main(cfg):
 
     trainer = RLTrainer(agents[0], cfg.train, trainer_key, device=cfg.device)
 
-    policy = trainer.policy
+    policy = PolicyAggregator(
+        [
+            trainer.policy,
+            RandomPolicy(agents[1].pi_action_spec),
+            GreedyPolicy(env, 2),
+        ]
+    )
     policy_context = policy.init_context(policy_key)
+
+    sim = Sim(env, agents, reward)
+
+    collect = collect_factory(
+        sim.reset,
+        sim.step,
+        policy,
+        timesteps_per_env=cfg.collect.batch.timesteps_per_env,
+        num_envs=cfg.collect.batch.num_envs,
+        extended_transition=True,
+    )
+    collect = jax.jit(collect)
+
+    logger = ExtWandbLogger(
+        exp_name="PPO_TEST",
+        **{**cfg.env_var.wandb, **cfg.collect.wandb},
+    )
+
+    total_frames = 0
+    for i in range(
+        cfg.collect.total_timesteps // cfg.collect.batch.timesteps_per_env + 1
+    ):
+        key, subkey = jax.random.split(key)
+
+        # collect
+        transitions = collect(subkey, policy_context)
+
+        tds = transitions_to_tensordicts(transitions)
+
+        total_frames += transitions.step_count.size
+
+        # train
+        log_dict, total_frames = trainer.step(tds[0])
+
+        log_dict.update(
+            {
+                "rollout/pursuer_winrate": jnp.sum(
+                    transitions.raw_next_obs.state.agent_win[..., 0]
+                )
+                / jnp.sum(transitions.terminated),
+                "rollout/evader_winrate": jnp.sum(
+                    transitions.raw_next_obs.state.agent_win[..., 2]
+                )
+                / jnp.sum(transitions.terminated),
+            }
+        )
+
+        logger.log_scalars(log_dict, timestep=total_frames)
 
 
 if __name__ == "__main__":

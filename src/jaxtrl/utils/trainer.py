@@ -3,7 +3,7 @@ import importlib
 import jax
 import torch as th
 
-RL_MAP = {"ppo": "perl_jax.rl.ppo"}
+RL_MAP = {"ppo": "jaxtrl.rl.ppo"}
 
 
 class RLTrainer:
