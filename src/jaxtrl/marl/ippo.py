@@ -19,4 +19,15 @@ class IPPO:
         ]
 
     def step(self, tds):
-        pass
+        log_dicts = [ppo.step(td) for ppo, td in zip(self.ppos, tds)]
+        return {
+            **{
+                f"agent_{i}/{k}": v
+                for i, log_dict in enumerate(log_dicts)
+                for k, v in log_dict.items()
+            },
+        }
+
+
+class IPPOTrainer:
+    pass

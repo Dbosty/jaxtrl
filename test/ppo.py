@@ -81,10 +81,12 @@ def main(cfg):
     for i in range(
         cfg.collect.total_timesteps // cfg.collect.batch.timesteps_per_env + 1
     ):
-        key, subkey = jax.random.split(key)
+        key, policy_key, collect_key = jax.random.split(key, 3)
+
+        policy_context = policy.reset_context(policy_context, policy_key)
 
         # collect
-        transitions = collect(subkey, policy_context)
+        transitions = collect(collect_key, policy_context)
 
         tds = transitions_to_tensordicts(transitions)
 
