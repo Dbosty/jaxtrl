@@ -1,0 +1,12 @@
+defaults:
+  - ppo
+  - _self_
+
+rl_kwargs:
+  critic_obs_key: oracle
+  critic_obs_size: 10
+
+critic: mlp
+critic_kwargs:
+  net_arch: [64, 32, 16]
+  activation_func: relu

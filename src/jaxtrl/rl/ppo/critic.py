@@ -8,7 +8,12 @@ from jaxtrl.model.th import LambdaModule, create_mlp_layers
 
 
 def mlp_critic_factory(
-    obs_space, action_space, net_arch=[64, 64, 64], activation_func="tanh", device="cpu"
+    obs_space,
+    action_space,
+    net_arch=[64, 64, 64],
+    activation_func="tanh",
+    device="cpu",
+    **kwargs,
 ):
     layers = create_mlp_layers(obs_space.shape[0], net_arch, activation_func, True)
     layers.append(nn.Linear(net_arch[-1], 1))
@@ -31,6 +36,7 @@ def lstm_critic_factory(
     bounded=False,
     bounded_range=(0, 1),
     device="cpu",
+    **kwargs,
 ):
 
     create_is_init = Mod(

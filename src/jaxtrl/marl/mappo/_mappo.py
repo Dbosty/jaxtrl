@@ -22,8 +22,6 @@ class MAPPO:
         self.actors = actors
         self.critic = critic
 
-        if "critic_obs_key" in hp and isinstance(hp["critic_obs_key"], str):
-            hp["critic_obs_key"] = [hp["critic_obs_key"]]
         self.hp = Hyperparameters(**hp)
 
         self.actor_parameters = [actor.trl_actor.parameters() for actor in actors]
@@ -193,7 +191,9 @@ class MAPPO:
                     log_dict[f"train/agent_{i}/loss_objective"] = loss_vals[
                         "loss_objective"
                     ].item()
-                    log_dict[f"train/agent_{i}/kl_approx"] = loss_vals["kl_approx"].item()
+                    log_dict[f"train/agent_{i}/kl_approx"] = loss_vals[
+                        "kl_approx"
+                    ].item()
                     log_dict[f"train/agent_{i}/clip_fraction"] = loss_vals[
                         "clip_fraction"
                     ].item()
@@ -208,18 +208,22 @@ class MAPPO:
 
                     # Critic loss is only computed for the last agent
                     if i == len(self.actors) - 1 and "loss_critic" in loss_vals:
-                        log_dict["train/critic/loss_critic"] = loss_vals["loss_critic"].item()
+                        log_dict["train/critic/loss_critic"] = loss_vals[
+                            "loss_critic"
+                        ].item()
 
                     # Per-agent std and lr
                     agent_td = tds[i]
                     agent_std = (
-                        agent_td["scale"].mean().item() if "scale" in agent_td.keys() else 0
+                        agent_td["scale"].mean().item()
+                        if "scale" in agent_td.keys()
+                        else 0
                     )
                     log_dict[f"train/agent_{i}/std"] = agent_std
 
-                    log_dict[f"train/agent_{i}/lr"] = self.actor_optims[i].param_groups[0][
-                        "lr"
-                    ]
+                    log_dict[f"train/agent_{i}/lr"] = self.actor_optims[i].param_groups[
+                        0
+                    ]["lr"]
 
         # Add shared training statistics
         log_dict["train/critic/explained_variance"] = explained_variance

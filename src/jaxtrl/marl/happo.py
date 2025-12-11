@@ -32,8 +32,8 @@ class HAPPO(MAPPO):
         base_td = add_critic_obs(
             base_td,
             self.hp.critic_obs_key,
-            ma_td[*self.hp.critic_obs_key],
-            ma_td["next", *self.hp.critic_obs_key],
+            ma_td[self.hp.critic_obs_key],
+            ma_td["next", self.hp.critic_obs_key],
         )
 
         tds = []

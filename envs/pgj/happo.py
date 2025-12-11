@@ -7,20 +7,20 @@ from omegaconf import DictConfig, OmegaConf
 
 #
 from pgj.env import ODEnv
-from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp
+from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp, Oracle
 from pgj.jaxtrl.policy import GreedyPolicy
 from pgj.jaxtrl.reward import SparseEvader, SparsePursuer
 from pgj.jaxtrl.term import is_terminated
 
-from jaxtrl.marl.happo import HAPPOTrainer
+from jaxtrl.marl.happo import HAPPOTrainer, add_critic_obs
 from jaxtrl.sim import Sim
 from jaxtrl.sim.collect import collect_factory
-from jaxtrl.sim.policy import PolicyAggregator, RandomPolicy
+from jaxtrl.sim.policy import PolicyAggregator
 from jaxtrl.utils.logger import ExtWandbLogger
 from jaxtrl.utils.tensordict import transitions_to_ma_tensordict
 
 
-@hydra.main(version_base=None, config_path="../conf", config_name="config")
+@hydra.main(version_base=None, config_path="../../conf", config_name="config")
 def main(cfg):
     if cfg.seed is None:
         cfg.seed = np.random.randint(0, 2**32 - 1)
@@ -70,12 +70,18 @@ def main(cfg):
         num_envs=cfg.collect.batch.num_envs,
         extended_transition=True,
     )
-    # collect = jax.jit(collect)
+    collect = jax.jit(collect)
+
+    w_oracle = False
+    if cfg.train.rl_kwargs.get("critic_obs_key", None) is not None:
+        w_oracle = True
 
     logger = ExtWandbLogger(
-        exp_name="pgj_happo_test",
+        exp_name=f"pgj_happo{'_w_oracle' if w_oracle else ''}_test",
         **{**cfg.env_var.wandb, **cfg.collect.wandb},
     )
+
+    oracle = Oracle(0, 1, 2, env.grid.shape)
 
     total_frames = 0
     for i in range(
@@ -89,6 +95,11 @@ def main(cfg):
         transitions = collect(collect_key, policy_context)
 
         ma_td = transitions_to_ma_tensordict(transitions)
+
+        if w_oracle:
+            oracle_obs, _ = jax.vmap(oracle.obs_env2pi)(transitions.raw_obs)
+            oracle_next_obs, _ = jax.vmap(oracle.obs_env2pi)(transitions.raw_next_obs)
+            ma_td = add_critic_obs(ma_td, "oracle", oracle_obs, oracle_next_obs)
 
         total_frames += transitions.step_count.size
 

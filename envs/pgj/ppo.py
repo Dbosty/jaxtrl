@@ -20,7 +20,7 @@ from jaxtrl.utils.logger import ExtWandbLogger
 from jaxtrl.utils.tensordict import transitions_to_tensordicts
 
 
-@hydra.main(version_base=None, config_path="../conf", config_name="config")
+@hydra.main(version_base=None, config_path="../../conf", config_name="config")
 def main(cfg):
     if cfg.seed is None:
         cfg.seed = np.random.randint(0, 2**32 - 1)
