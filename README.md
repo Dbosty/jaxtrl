@@ -1,6 +1,6 @@
 # jaxtrl
 
-Reinforcement learning library for JAX-based environments with PyTorch training. Supports single-agent and multi-agent algorithms.
+Reinforcement learning library for JAX-based environments with PyTorch / TorchRL training. Supports single-agent and multi-agent algorithms.
 
 ## Algorithms
 
