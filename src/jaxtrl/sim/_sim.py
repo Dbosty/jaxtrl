@@ -60,7 +60,7 @@ class Sim:
             next_sim_context.append(_sim_context)
 
         terminated = self.term(next_obs)
-        truncated = next_obs.timestep >= self.max_steps - 1
+        truncated = next_obs.timestep >= self.max_steps
 
         next_obs_for_pi, next_agent_context = self._obs_env2pi(next_obs, agent_context)
 

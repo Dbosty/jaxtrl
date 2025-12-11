@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import torch as th
+from tensordict import TensorDict, merge_tensordicts
 
 from jaxtrl.rl.ppo import PPO
 from jaxtrl.rl.ppo import Hyperparameters as PPOHyperparameters
@@ -19,7 +20,24 @@ class IPPO:
             for actor, critic in zip(actors, critics)
         ]
 
-    def step(self, tds):
+    def step(self, ma_td):
+        base_td = TensorDict(
+            source={
+                "next": {
+                    "terminated": ma_td["next", "terminated"],
+                    "truncated": ma_td["next", "truncated"],
+                    "done": ma_td["next", "done"],
+                    "step_count": ma_td["next", "step_count"],
+                },
+                "step_count": ma_td["step_count"],
+            },
+            batch_size=ma_td.batch_size,
+            device=ma_td.device,
+        )
+        tds = [
+            merge_tensordicts(ma_td[f"agent_{i}"], base_td)
+            for i in range(len(self.ppos))
+        ]
         log_dicts = [ppo.step(td) for ppo, td in zip(self.ppos, tds)]
         return {
             **{
@@ -61,8 +79,8 @@ class IPPOTrainer(PPOTrainer):
             **rl_kwargs,
         )
 
-    def step(self, tds):
-        return self.ippo.step(tds)
+    def step(self, ma_td):
+        return self.ippo.step(ma_td)
 
     @property
     def policies(self):

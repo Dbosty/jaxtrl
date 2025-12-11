@@ -17,7 +17,7 @@ from jaxtrl.sim import Sim
 from jaxtrl.sim.collect import collect_factory
 from jaxtrl.sim.policy import PolicyAggregator, RandomPolicy
 from jaxtrl.utils.logger import ExtWandbLogger
-from jaxtrl.utils.tensordict import transitions_to_tensordicts
+from jaxtrl.utils.tensordict import transitions_to_ma_tensordict
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
@@ -70,7 +70,7 @@ def main(cfg):
         num_envs=cfg.collect.batch.num_envs,
         extended_transition=True,
     )
-    collect = jax.jit(collect)
+    # collect = jax.jit(collect)
 
     logger = ExtWandbLogger(
         exp_name="IPPO_TEST",
@@ -88,12 +88,12 @@ def main(cfg):
         # collect
         transitions = collect(collect_key, policy_context)
 
-        tds = transitions_to_tensordicts(transitions)
+        ma_td = transitions_to_ma_tensordict(transitions)
 
         total_frames += transitions.step_count.size
 
         # train
-        log_dict = trainer.step(tds[:2])
+        log_dict = trainer.step(ma_td)
 
         log_dict.update(
             {
