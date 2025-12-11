@@ -73,7 +73,7 @@ def main(cfg):
     # collect = jax.jit(collect)
 
     logger = ExtWandbLogger(
-        exp_name="HAPPO_TEST",
+        exp_name="pgj_happo_test",
         **{**cfg.env_var.wandb, **cfg.collect.wandb},
     )
 

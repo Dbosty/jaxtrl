@@ -46,22 +46,26 @@ class IPPO:
 
         log_dicts = [ppo.step(td) for ppo, td in zip(self.ppos, tds)]
 
-        log_dict = {
-            **{
-                f"agent_{i}/{k}": v
-                for i, log_dict in enumerate(log_dicts)
-                for k, v in log_dict.items()
-            },
-        }
+        # Transform keys from "category/metric" to "category/agent_i/metric"
+        log_dict = {}
+        for i, ld in enumerate(log_dicts):
+            for k, v in ld.items():
+                parts = k.split("/", 1)
+                if len(parts) == 2:
+                    new_key = f"{parts[0]}/agent_{i}/{parts[1]}"
+                else:
+                    new_key = f"agent_{i}/{k}"
+                log_dict[new_key] = v
 
-        log_dict["rollout/ep_len_mean"] = log_dict.get("agent_0/rollout/ep_len_mean")
-        log_dict["rollout/ep_len_min"] = log_dict.get("agent_0/rollout/ep_len_min")
-        log_dict["rollout/ep_len_max"] = log_dict.get("agent_0/rollout/ep_len_max")
+        # Use agent_0's episode length stats as shared rollout stats
+        log_dict["rollout/ep_len_mean"] = log_dict.get("rollout/agent_0/ep_len_mean")
+        log_dict["rollout/ep_len_min"] = log_dict.get("rollout/agent_0/ep_len_min")
+        log_dict["rollout/ep_len_max"] = log_dict.get("rollout/agent_0/ep_len_max")
 
         for i in range(len(self.ppos)):
-            del log_dict[f"agent_{i}/rollout/ep_len_mean"]
-            del log_dict[f"agent_{i}/rollout/ep_len_min"]
-            del log_dict[f"agent_{i}/rollout/ep_len_max"]
+            del log_dict[f"rollout/agent_{i}/ep_len_mean"]
+            del log_dict[f"rollout/agent_{i}/ep_len_min"]
+            del log_dict[f"rollout/agent_{i}/ep_len_max"]
 
         return log_dict
 
