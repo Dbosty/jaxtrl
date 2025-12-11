@@ -94,7 +94,7 @@ class HAPPO(MAPPO):
         log_dict = self._log_dict(tds, agents_loss_vals)
 
         for i in range(len(self.actors)):
-            log_dict[f"train/agent_{i}/kappa"] = avg_kappas[i]
+            log_dict[f"train/agent_{i}/avg_kappa"] = avg_kappas[i]
 
         return log_dict
 
