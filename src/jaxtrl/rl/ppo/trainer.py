@@ -38,14 +38,14 @@ class PPOTrainer:
 
         self.critic = self.get_critic(agent, config["critic"], critic_kwargs, device)
 
-        self.rl_algo = PPO(
+        self.algo = PPO(
             self.actor,
             self.critic,
             **rl_kwargs,
         )
 
     def step(self, td):
-        return self.rl_algo.step(td)
+        return self.algo.step(td)
 
     @property
     def policy(self):

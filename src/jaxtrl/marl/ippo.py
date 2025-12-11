@@ -34,18 +34,36 @@ class IPPO:
             batch_size=ma_td.batch_size,
             device=ma_td.device,
         )
-        tds = [
-            merge_tensordicts(ma_td[f"agent_{i}"], base_td)
-            for i in range(len(self.ppos))
-        ]
+
+        tds = []
+        for i in range(len(self.ppos)):
+            td = merge_tensordicts(
+                base_td,
+                ma_td[f"agent_{i}"],
+            )
+            td["next"].update(ma_td["next", f"agent_{i}"])
+            tds.append(td)
+
         log_dicts = [ppo.step(td) for ppo, td in zip(self.ppos, tds)]
-        return {
+
+        log_dict = {
             **{
                 f"agent_{i}/{k}": v
                 for i, log_dict in enumerate(log_dicts)
                 for k, v in log_dict.items()
             },
         }
+
+        log_dict["rollout/ep_len_mean"] = log_dict.get("agent_0/rollout/ep_len_mean")
+        log_dict["rollout/ep_len_min"] = log_dict.get("agent_0/rollout/ep_len_min")
+        log_dict["rollout/ep_len_max"] = log_dict.get("agent_0/rollout/ep_len_max")
+
+        for i in range(len(self.ppos)):
+            del log_dict[f"agent_{i}/rollout/ep_len_mean"]
+            del log_dict[f"agent_{i}/rollout/ep_len_min"]
+            del log_dict[f"agent_{i}/rollout/ep_len_max"]
+
+        return log_dict
 
 
 class IPPOTrainer(PPOTrainer):
@@ -73,14 +91,14 @@ class IPPOTrainer(PPOTrainer):
             for agent in agents
         ]
 
-        self.ippo = IPPO(
+        self.algo = IPPO(
             self.actors,
             self.critics,
             **rl_kwargs,
         )
 
     def step(self, ma_td):
-        return self.ippo.step(ma_td)
+        return self.algo.step(ma_td)
 
     @property
     def policies(self):

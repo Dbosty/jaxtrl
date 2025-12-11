@@ -89,15 +89,13 @@ class PPO:
         td["action_log_prob"] = (
             self.actor.trl_actor.get_dist(td).log_prob(td["action"]).detach()
         )
+        td = self.advantage_module(td)
 
         # Store final loss values for logging
         final_loss_value = None
         final_loss_vals = None
 
         for _ in range(self.hp.num_epochs):
-
-            td = self.advantage_module(td)
-
             for i in range(max(td.shape[0] // self.hp.sub_batch_size, 1)):
                 subdata = td[
                     self.hp.sub_batch_size * i : self.hp.sub_batch_size * (i + 1)
@@ -172,7 +170,7 @@ class PPO:
             "ep_len_max": step_counts.max().item(),
         }
 
-        # train data
+        # train data - calculate all metrics that need tensordict_data before deleting it
         explained_variance = -1
         if th.var(tensordict_data.get("state_value")) > 0:
             explained_variance = max(

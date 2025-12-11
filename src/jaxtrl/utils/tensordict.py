@@ -61,19 +61,18 @@ def transitions_to_ma_tensordict(transitions: Transition):
     }
 
     for i in range(len(tds)):
-        ma_source[f"agent_{i}"] = TensorDict(
-            {
-                "observation": tds[i]["observation"],
-                "action": tds[i]["action"],
-                "next": {
-                    "observation": tds[i]["next", "observation"],
-                    "reward": tds[i]["next", "reward"],
-                    "episode_reward": tds[i]["next", "episode_reward"],
-                },
+        ma_source[f"agent_{i}"] = {
+            "observation": tds[i]["observation"],
+            "action": tds[i]["action"],
+        }
+
+        ma_source["next"] |= {
+            f"agent_{i}": {
+                "observation": tds[i]["next", "observation"],
+                "reward": tds[i]["next", "reward"],
+                "episode_reward": tds[i]["next", "episode_reward"],
             },
-            batch_size=tds[i].batch_size,
-            device=tds[i].device,
-        )
+        }
 
     return TensorDict(
         source=ma_source,
