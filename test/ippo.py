@@ -10,8 +10,9 @@ from pgj.env import ODEnv
 from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp
 from pgj.jaxtrl.policy import GreedyPolicy
 from pgj.jaxtrl.reward import SparseEvader, SparsePursuer
+from pgj.jaxtrl.term import is_terminated
 
-from jaxtrl.rl.ppo.trainer import PPOTrainer
+from jaxtrl.marl.ippo import IPPOTrainer
 from jaxtrl.sim import Sim
 from jaxtrl.sim.collect import collect_factory
 from jaxtrl.sim.policy import PolicyAggregator, RandomPolicy
@@ -47,21 +48,19 @@ def main(cfg):
         SparseEvader(0, 1, 2, 1, 0),
     ]
 
-    key, llp_trainer_key, hlp_trainer_key, policy_key = jax.random.split(key, 4)
+    key, trainer_key, policy_key = jax.random.split(key, 3)
 
-    llp_trainer = PPOTrainer(agents[0], cfg.train, llp_trainer_key, device=cfg.device)
-    hlp_trainer = PPOTrainer(agents[1], cfg.train, hlp_trainer_key, device=cfg.device)
+    trainer = IPPOTrainer(agents[:2], cfg.train, trainer_key, device=cfg.device)
 
     policy = PolicyAggregator(
         [
-            llp_trainer.policy,
-            hlp_trainer.policy,
+            *trainer.policies,
             GreedyPolicy(env, 2),
         ]
     )
     policy_context = policy.init_context(policy_key)
 
-    sim = Sim(env, agents, reward)
+    sim = Sim(env, agents, reward, is_terminated)
 
     collect = collect_factory(
         sim.reset,
@@ -82,23 +81,19 @@ def main(cfg):
     for i in range(
         cfg.collect.total_timesteps // cfg.collect.batch.timesteps_per_env + 1
     ):
-        key, subkey = jax.random.split(key)
+        key, policy_key, collect_key = jax.random.split(key, 3)
+
+        policy_context = policy.init_context(policy_key)
 
         # collect
-        transitions = collect(subkey, policy_context)
+        transitions = collect(collect_key, policy_context)
 
         tds = transitions_to_tensordicts(transitions)
 
         total_frames += transitions.step_count.size
 
         # train
-        log_dict_1 = llp_trainer.step(tds[0])
-        log_dict_2 = hlp_trainer.step(tds[1])
-
-        log_dict = {
-            **{f"llp/{k}": v for k, v in log_dict_1.items()},
-            **{f"hlp/{k}": v for k, v in log_dict_2.items()},
-        }
+        log_dict = trainer.step(tds[:2])
 
         log_dict.update(
             {

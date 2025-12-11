@@ -147,25 +147,30 @@ class PPO:
         return log_dict
 
     def _log_dict(self, tensordict_data):
-        # Use terminated instead of done to exclude truncated episodes from statistics
+        # Use terminated for stats, but fall back to done (terminated | truncated)
+        # when no episodes terminate (e.g., agent is very good and all eps truncate)
         terminated = tensordict_data.get(("next", "terminated"))
+        done = tensordict_data.get(("next", "done"))
 
-        rollout_data = (
-            {
-                "ep_len_mean": tensordict_data["next", "step_count"][terminated]
-                .float()
-                .mean()
-                .item(),
-                "ep_rew_mean": tensordict_data["next", "episode_reward"][terminated]
-                .mean()
-                .item(),
-                "step_rew_mean": tensordict_data["next", "reward"].mean().item(),
-                "ep_len_min": tensordict_data["next", "step_count"][terminated].min().item(),
-                "ep_len_max": tensordict_data["next", "step_count"][terminated].max().item(),
-            }
-            if terminated.any()
-            else {}
-        )
+        if terminated.any():
+            step_counts = tensordict_data["next", "step_count"][terminated].float()
+            episode_rewards = tensordict_data["next", "episode_reward"][terminated]
+        elif done.any():
+            # Fall back to all done episodes
+            step_counts = tensordict_data["next", "step_count"][done].float()
+            episode_rewards = tensordict_data["next", "episode_reward"][done]
+        else:
+            # Last resort: use last frame
+            step_counts = tensordict_data["next", "step_count"][-1:].float()
+            episode_rewards = tensordict_data["next", "episode_reward"][-1:]
+
+        rollout_data = {
+            "ep_len_mean": step_counts.mean().item(),
+            "ep_rew_mean": episode_rewards.mean().item(),
+            "step_rew_mean": tensordict_data["next", "reward"].mean().item(),
+            "ep_len_min": step_counts.min().item(),
+            "ep_len_max": step_counts.max().item(),
+        }
 
         # train data
         explained_variance = -1

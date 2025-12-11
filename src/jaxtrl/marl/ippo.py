@@ -51,7 +51,7 @@ class IPPOTrainer(PPOTrainer):
         ]
 
         self.critics = [
-            self.get_critic(agent, config["critic"], critic_kwargs, jax_key, device)
+            self.get_critic(agent, config["critic"], critic_kwargs, device)
             for agent in agents
         ]
 

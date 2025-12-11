@@ -71,7 +71,7 @@ def main(cfg):
         num_envs=cfg.collect.batch.num_envs,
         extended_transition=True,
     )
-    # collect = jax.jit(collect)
+    collect = jax.jit(collect)
 
     logger = ExtWandbLogger(
         exp_name="PPO_TEST",
