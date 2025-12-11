@@ -6,6 +6,7 @@ from pgj.env import ODEnv
 from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp
 from pgj.jaxtrl.policy import GreedyPolicy
 from pgj.jaxtrl.reward import SparseEvader, SparsePursuer
+from pgj.jaxtrl.term import is_terminated
 from pgj.visualizer import Visualizer
 
 from jaxtrl.sim import Sim
@@ -40,7 +41,7 @@ def main(jit, sleep_time, seed):
     key, subkey = jax.random.split(key)
     policy_context = policy.init_context(subkey)
 
-    sim = Sim(env, agents, reward)
+    sim = Sim(env, agents, reward, is_terminated)
     reset = sim.reset
     step = sim.step
     policy_call = policy.__call__

@@ -147,22 +147,23 @@ class PPO:
         return log_dict
 
     def _log_dict(self, tensordict_data):
-        done = tensordict_data.get(("next", "done"))
+        # Use terminated instead of done to exclude truncated episodes from statistics
+        terminated = tensordict_data.get(("next", "terminated"))
 
         rollout_data = (
             {
-                "ep_len_mean": tensordict_data["next", "step_count"][done]
+                "ep_len_mean": tensordict_data["next", "step_count"][terminated]
                 .float()
                 .mean()
                 .item(),
-                "ep_rew_mean": tensordict_data["next", "episode_reward"][done]
+                "ep_rew_mean": tensordict_data["next", "episode_reward"][terminated]
                 .mean()
                 .item(),
                 "step_rew_mean": tensordict_data["next", "reward"].mean().item(),
-                "ep_len_min": tensordict_data["next", "step_count"][done].min().item(),
-                "ep_len_max": tensordict_data["next", "step_count"][done].max().item(),
+                "ep_len_min": tensordict_data["next", "step_count"][terminated].min().item(),
+                "ep_len_max": tensordict_data["next", "step_count"][terminated].max().item(),
             }
-            if done.any()
+            if terminated.any()
             else {}
         )
 
@@ -189,7 +190,7 @@ class PPO:
 
         # Clean up tensordict reference immediately after extracting needed values
         del tensordict_data
-        del done
+        del terminated
 
         train_data = {
             "loss": 0.0,  # Will be filled by caller

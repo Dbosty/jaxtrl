@@ -10,6 +10,7 @@ from pgj.env import ODEnv
 from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp
 from pgj.jaxtrl.policy import GreedyPolicy
 from pgj.jaxtrl.reward import SparseEvader, SparsePursuer
+from pgj.jaxtrl.term import is_terminated
 
 from jaxtrl.sim import Sim
 from jaxtrl.sim.collect import collect_factory
@@ -62,7 +63,7 @@ def main(cfg):
 
     key, trainer_key, policy_key = jax.random.split(key, 3)
 
-    sim = Sim(env, agents, reward)
+    sim = Sim(env, agents, reward, is_terminated)
 
     collect = collect_factory(sim.reset, sim.step, policy, timesteps_per_env=100)
 

@@ -10,6 +10,7 @@ from pgj.env import ODEnv
 from pgj.jaxtrl.agent import GreedyEvader, IndTeamHlp, IndTeamLlp
 from pgj.jaxtrl.policy import GreedyPolicy
 from pgj.jaxtrl.reward import SparseEvader, SparsePursuer
+from pgj.jaxtrl.term import is_terminated
 
 from jaxtrl.rl.ppo.trainer import PPOTrainer
 from jaxtrl.sim import Sim
@@ -60,7 +61,7 @@ def main(cfg):
     )
     policy_context = policy.init_context(policy_key)
 
-    sim = Sim(env, agents, reward)
+    sim = Sim(env, agents, reward, is_terminated)
 
     collect = collect_factory(
         sim.reset,
@@ -70,7 +71,7 @@ def main(cfg):
         num_envs=cfg.collect.batch.num_envs,
         extended_transition=True,
     )
-    collect = jax.jit(collect)
+    # collect = jax.jit(collect)
 
     logger = ExtWandbLogger(
         exp_name="PPO_TEST",
@@ -83,7 +84,7 @@ def main(cfg):
     ):
         key, policy_key, collect_key = jax.random.split(key, 3)
 
-        policy_context = policy.reset_context(policy_context, policy_key)
+        policy_context = policy.init_context(policy_key)
 
         # collect
         transitions = collect(collect_key, policy_context)

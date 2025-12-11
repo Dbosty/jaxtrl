@@ -36,14 +36,7 @@ class PPOTrainer:
             agent, config["actor"], actor_kwargs, jax_key, device
         )
 
-        self.critic = CRITIC_FACTORY_MAP[config["critic"]](
-            agent.pi_obs_spec,
-            agent.pi_action_spec,
-            **{
-                **critic_kwargs,
-                "device": device,
-            },
-        )
+        self.critic = self.get_critic(agent, config["critic"], critic_kwargs, device)
 
         self.rl_algo = PPO(
             self.actor,
@@ -66,6 +59,17 @@ class PPOTrainer:
             key,
             **{
                 **agent_kwargs,
+                "device": device,
+            },
+        )
+
+    @staticmethod
+    def get_critic(agent, critic_type, critic_kwargs, device):
+        return CRITIC_FACTORY_MAP[critic_type](
+            agent.pi_obs_spec,
+            agent.pi_action_spec,
+            **{
+                **critic_kwargs,
                 "device": device,
             },
         )

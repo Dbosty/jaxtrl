@@ -7,7 +7,7 @@ from jaxtrl.sim.env import Agent, Observation, Reward
 
 class Sim:
     def __init__(
-        self, env, agents: list[Agent], reward: list[Reward], max_steps: int = 100
+        self, env, agents: list[Agent], reward: list[Reward], term, max_steps: int = 100
     ):
         assert len(agents) == len(
             reward
@@ -16,6 +16,7 @@ class Sim:
         self.env = env
         self.agents = agents
         self.reward = reward
+        self.term = term
         self.max_steps = max_steps
 
     def reset(self, key: Key):
@@ -58,7 +59,7 @@ class Sim:
             reward.append(_reward)
             next_sim_context.append(_sim_context)
 
-        terminated = jnp.any(next_obs.state.agent_win)
+        terminated = self.term(next_obs)
         truncated = next_obs.timestep >= self.max_steps - 1
 
         next_obs_for_pi, next_agent_context = self._obs_env2pi(next_obs, agent_context)
