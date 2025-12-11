@@ -1,3 +1,5 @@
+import random
+
 import jax
 import torch as th
 from tensordict import TensorDict, merge_tensordicts
@@ -52,12 +54,14 @@ class HAPPO(MAPPO):
             tds[i] = td
 
         agents_loss_vals = [None] * len(self.actors)
+        avg_kappas = [None] * len(self.actors)  # for logging
 
-        avg_kappas = []  # for logging
+        random_idxs = list(range(len(self.actors)))
+        random.shuffle(random_idxs)
 
         kappa = 1
-        for i in range(len(self.actors)):
-            avg_kappas.append(1 if isinstance(kappa, int) else kappa.mean().item())
+        for i in random_idxs:
+            avg_kappas[i] = 1 if isinstance(kappa, int) else kappa.mean().item()
             for _ in range(self.hp.num_epochs):
                 td = tds[i]
 
