@@ -1,26 +1,33 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from jaxtrl.model.th import LambdaModule, create_mlp_layers
 from tensordict.nn import TensorDictModule as Mod
 from tensordict.nn import TensorDictSequential as Seq
 from torchrl.modules import LSTMModule, ValueOperator
-
-from jaxtrl.model.th import LambdaModule, create_mlp_layers
 
 
 def mlp_critic_factory(
     obs_space,
     action_space,
     net_arch=[64, 64, 64],
+    input_key="observation",
+    input_size_override=None,
+    out_key="state_value",
     activation_func="tanh",
     device="cpu",
     **kwargs,
 ):
-    layers = create_mlp_layers(obs_space.shape[0], net_arch, activation_func, True)
+    layers = create_mlp_layers(
+        obs_space.shape[0] if input_size_override is None else input_size_override,
+        net_arch,
+        activation_func,
+        True,
+    )
     layers.append(nn.Linear(net_arch[-1], 1))
 
     critic_net = nn.Sequential(*layers).to(device)
 
-    return ValueOperator(module=critic_net, in_keys=["observation"])
+    return ValueOperator(module=critic_net, in_keys=[input_key], out_keys=[out_key])
 
 
 def lstm_critic_factory(

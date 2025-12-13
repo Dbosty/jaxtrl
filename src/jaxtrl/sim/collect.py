@@ -201,3 +201,43 @@ def collect_factory(
         return transitions
 
     return collect
+
+
+def dummy_collect_factory(sim_reset, sim_step, policy, *args, **kwargs):
+    dummy_obs, dummy_obs_for_pi, dummy_agent_context, dummy_sim_context = sim_reset(
+        dummy_key := jax.random.key(0)
+    )
+    dummy_policy_context = policy.init_context(dummy_key)
+    dummy_action_from_pi, dummy_policy_context = policy(
+        dummy_obs_for_pi, dummy_policy_context, dummy_key
+    )
+
+    def _collect(*args, **kwargs):
+        carry = Carry(
+            obs=dummy_obs,
+            obs_for_pi=dummy_obs_for_pi,
+            episode_reward=jnp.zeros(len(dummy_obs_for_pi)),
+            policy_context=dummy_policy_context,
+            agent_context=dummy_agent_context,
+            sim_context=dummy_sim_context,
+            done=True,
+            step_count=-1,
+            key=dummy_key,
+        )
+
+        transition = Transition(
+            obs=carry.obs_for_pi,
+            action=dummy_action_from_pi,
+            next_obs=dummy_obs_for_pi,
+            reward=jnp.zeros(len(dummy_obs_for_pi)),
+            episode_reward=jnp.zeros(len(dummy_obs_for_pi)),
+            terminated=False,
+            truncated=False,
+            step_count=0,
+        )
+
+        transitions = jax.tree.map(lambda x: jnp.stack([x, x]), transition)
+
+        return transitions
+
+    return _collect

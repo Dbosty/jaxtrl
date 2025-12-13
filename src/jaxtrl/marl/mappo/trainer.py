@@ -84,12 +84,6 @@ class MAPPOTrainer:
     def get_critic(
         agent, critic_type, critic_kwargs, critic_obs_key, critic_obs_size, device
     ):
-        # Normalize critic_obs_key to tuple format for consistent handling
-        if isinstance(critic_obs_key, str):
-            critic_obs_key = (critic_obs_key,)
-        elif isinstance(critic_obs_key, (list, tuple)):
-            critic_obs_key = tuple(critic_obs_key)
-
         critic_kwargs = {
             **critic_kwargs,
             "input_key": critic_obs_key,

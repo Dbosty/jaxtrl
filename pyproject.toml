@@ -15,6 +15,7 @@ dependencies = [
     "jaxtyping",
     "torchrl",
     "hydra-core", 
+    "dacite",
 ]
 
 [tool.setuptools.packages.find]

@@ -24,8 +24,8 @@ class MAPPO:
 
         self.hp = Hyperparameters(**hp)
 
-        self.actor_parameters = [actor.trl_actor.parameters() for actor in actors]
-        self.critic_parameters = critic.parameters()
+        self.actor_parameters = [list(actor.trl_actor.parameters()) for actor in actors]
+        self.critic_parameters = list(critic.parameters())
 
         self.actor_optims = [
             th.optim.Adam(actor_parameters, lr=self.hp.lr)
@@ -84,8 +84,8 @@ class MAPPO:
         base_td = add_critic_obs(
             base_td,
             self.hp.critic_obs_key,
-            ma_td[*self.hp.critic_obs_key],
-            ma_td["next", *self.hp.critic_obs_key],
+            ma_td[self.hp.critic_obs_key],
+            ma_td["next", self.hp.critic_obs_key],
         )
 
         tds = []
