@@ -117,7 +117,7 @@ class LSTMActor(Policy):
         for name, param in self.trl_actor.named_parameters():
             param_jax = jax.dlpack.from_dlpack(param.clone().detach())
 
-            if name == "log_std":
+            if name == "module.0.module.3.module.log_std":
                 # Transfer log_std parameter
                 state["sampler"]["log_std"] = nnx.Param(param_jax)
 
@@ -213,12 +213,20 @@ class LSTMActor(Policy):
 
         # scale
 
-        log_std = nn.Parameter(th.zeros(action_space.shape[0]))
+        class ScaleMod(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.log_std = nn.Parameter(th.zeros(action_space.shape[0]))
+
+            def forward(self, loc):
+                return (
+                    self.log_std.exp().repeat(loc.shape[0], 1)
+                    if loc.ndim > 1
+                    else self.log_std.exp()
+                )
 
         scale_mod = Mod(
-            lambda loc: (
-                log_std.exp().repeat(loc.shape[0], 1) if loc.ndim > 1 else log_std.exp()
-            ),
+            ScaleMod(),
             in_keys=["loc"],
             out_keys=["scale"],
         )
@@ -259,8 +267,6 @@ class LSTMActor(Policy):
             distribution_kwargs=dist_kwargs,
             return_log_prob=True,
         )
-
-        actor.register_parameter("log_std", log_std)
 
         actor.to(device)
 

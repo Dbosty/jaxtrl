@@ -27,6 +27,9 @@ def mlp_critic_factory(
 
     critic_net = nn.Sequential(*layers).to(device)
 
+    if not isinstance(input_key, str):
+        input_key = tuple(input_key)
+
     return ValueOperator(module=critic_net, in_keys=[input_key], out_keys=[out_key])
 
 

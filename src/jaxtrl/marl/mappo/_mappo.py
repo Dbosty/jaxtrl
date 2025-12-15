@@ -1,17 +1,16 @@
 from dataclasses import dataclass
 
 import torch as th
+from jaxtrl.marl.mappo.utils import add_critic_obs
+from jaxtrl.rl.ppo import Hyperparameters as PPOHyperparameters
 from tensordict import TensorDict, merge_tensordicts
 from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
 
-from jaxtrl.marl.mappo.utils import add_critic_obs
-from jaxtrl.rl.ppo import Hyperparameters as PPOHyperparameters
-
 
 @dataclass
 class Hyperparameters(PPOHyperparameters):
-    critic_obs_key: list[str] | str = ("agent_0", "observation")
+    critic_obs_key: tuple[str, ...] | str = ("agent_0", "observation")
     critic_obs_size: int | None = None
 
 
@@ -220,10 +219,6 @@ class MAPPO:
                         else 0
                     )
                     log_dict[f"train/agent_{i}/std"] = agent_std
-
-                    log_dict[f"train/agent_{i}/lr"] = self.actor_optims[i].param_groups[
-                        0
-                    ]["lr"]
 
         # Add shared training statistics
         log_dict["train/critic/explained_variance"] = explained_variance
