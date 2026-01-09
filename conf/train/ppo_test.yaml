@@ -1,0 +1,26 @@
+rl: ppo
+rl_kwargs:
+  entropy_eps: 0
+  num_epochs: 5
+  sub_batch_size: 10_000
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  max_grad_norm: 0.5
+  critic_coef: 0.5
+  lr: 3e-4
+  loss_critic_type: smooth_l1
+
+actor: mlp
+critic: mlp
+
+actor_kwargs:
+  net_arch: [64, 32, 16]
+  activation_func: relu
+  distribution: tanh
+  distribution_kwargs:
+    tanh_loc: true
+
+critic_kwargs:
+  net_arch: [64, 32, 16]
+  activation_func: relu

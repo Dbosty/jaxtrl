@@ -1,6 +1,7 @@
 import copy
 from typing import Literal
 
+import gymnasium as gym
 import jax
 from flax import nnx
 from flax.nnx.nn import recurrent
@@ -12,7 +13,7 @@ from tensordict.nn import TensorDictSequential as Seq
 from torch import nn
 from torchrl.modules import LSTMModule, ProbabilisticActor
 
-from jaxtrl.model.jax import MultiCategoricalSampler
+from jaxtrl.model.jax import CategoricalSampler, MultiCategoricalSampler
 from jaxtrl.model.jax import create_mlp_layers as fl_create_mlp_layers
 from jaxtrl.model.th import MultiCategorical
 from jaxtrl.model.th import create_mlp_layers as th_create_mlp_layers
@@ -169,13 +170,20 @@ class DiscreteLSTMActor(Policy):
 
         # head
 
+        # Compute head_dim and output size based on action space type
+        if isinstance(action_space, gym.spaces.MultiDiscrete):
+            head_dim = list(action_space.nvec)
+        else:  # Discrete
+            head_dim = [action_space.n]
+        output_size = sum(head_dim)
+
         layers = th_create_mlp_layers(
             lstm_hidden_size,
             head_net_arch,
             head_activation_func,
             last_layer_activation_func=True,
         )
-        layers.append(nn.Linear(head_net_arch[-1], action_space.n))
+        layers.append(nn.Linear(head_net_arch[-1], output_size))
 
         head = nn.Sequential(*layers)
 
@@ -193,7 +201,8 @@ class DiscreteLSTMActor(Policy):
             module=policy,
             spec=action_spec,
             in_keys=["logits"],
-            distribution_class=Categorical,
+            distribution_class=MultiCategorical,
+            distribution_kwargs={"head_dim": head_dim},
             return_log_prob=True,
         )
 
@@ -216,6 +225,15 @@ class DiscreteLSTMActor(Policy):
             obs_space.shape[0], lstm_hidden_size, rngs=rngs
         )  # returns (c, h), h [vs th -> h, (h, c)]
 
+        # Compute head_dim and output size based on action space type
+        if isinstance(action_space, gym.spaces.MultiDiscrete):
+            head_dim = list(action_space.nvec)
+            sampler = MultiCategoricalSampler(head_dim)
+        else:  # Discrete
+            head_dim = [action_space.n]
+            sampler = CategoricalSampler()
+        output_size = sum(head_dim)
+
         layers = fl_create_mlp_layers(
             lstm_hidden_size,
             rngs,
@@ -223,9 +241,7 @@ class DiscreteLSTMActor(Policy):
             activation_func=head_activation_func,
             last_layer_activation_func=True,
         )
-        layers.append(nnx.Linear(head_net_arch[-1], action_space.n, rngs=rngs))
-
-        sampler = CategoricalSampler()
+        layers.append(nnx.Linear(head_net_arch[-1], output_size, rngs=rngs))
 
         class DiscreteLSTMActor(nnx.Module):
             def __init__(self, lstm_cell, mlp, sampler):

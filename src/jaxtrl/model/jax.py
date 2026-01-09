@@ -86,13 +86,20 @@ class CategoricalSampler(nnx.Module):
 
 
 class MultiCategoricalSampler(nnx.Module):
-    def __init__(self, rngs):
-        self.rngs = rngs
+    def __init__(self, nvec):
+        self.nvec = tuple(nvec)  # Store nvec as tuple for splitting logits
+        # Store split indices as tuple (not jax array) to avoid flax serialization issues
+        self._split_indices = tuple(int(x) for x in jnp.cumsum(jnp.array(nvec))[:-1])
 
     def __call__(self, logits, key):
-        return jnp.hstack(
-            [jax.random.categorical(key, logits[i]) for i in range(len(logits))]
+        # logits: concatenated logits, shape (..., sum(nvec))
+        # Split logits by nvec
+        split_logits = jnp.split(logits, self._split_indices, axis=-1)
+        keys = jax.random.split(key, len(self.nvec))
+        return jnp.stack(
+            [jax.random.categorical(keys[i], split_logits[i]) for i in range(len(self.nvec))]
         )
 
     def deterministic_sample(self, logits):
-        raise NotImplementedError
+        split_logits = jnp.split(logits, self._split_indices, axis=-1)
+        return jnp.stack([jnp.argmax(l, axis=-1) for l in split_logits])

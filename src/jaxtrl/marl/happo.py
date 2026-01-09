@@ -1,12 +1,11 @@
+import copy
 import random
 
-import jax
 import torch as th
 from tensordict import TensorDict, merge_tensordicts
 
-from jaxtrl.marl.mappo import MAPPO
+from jaxtrl.marl.mappo import MAPPO, MAPPOTrainer, add_critic_obs
 from jaxtrl.marl.mappo import Hyperparameters as MAPPOHyperarameters
-from jaxtrl.marl.mappo import MAPPOTrainer, add_critic_obs
 
 
 class Hyperparameters(MAPPOHyperarameters):
@@ -63,7 +62,7 @@ class HAPPO(MAPPO):
         for i in random_idxs:
             avg_kappas[i] = 1 if isinstance(kappa, int) else kappa.mean().item()
             for _ in range(self.hp.num_epochs):
-                td = tds[i]
+                td = copy.deepcopy(tds[i])
 
                 td["advantage"] *= kappa
 

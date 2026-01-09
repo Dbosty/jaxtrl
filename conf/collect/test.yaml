@@ -2,7 +2,7 @@ total_timesteps: 10_000
 
 batch:
   timesteps_per_env: 100
-  num_envs: 1
+  num_envs: 10
 
 visualize:
   freq: 0

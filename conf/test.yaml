@@ -1,5 +1,5 @@
 defaults:
-  - train: ppo
+  - train: ppo_test
   - collect: test
   - env_var: dummy
   - _self_

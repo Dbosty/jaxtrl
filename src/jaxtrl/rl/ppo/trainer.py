@@ -1,6 +1,7 @@
 import torch as th
 
 from jaxtrl.rl.ppo._ppo import PPO
+from jaxtrl.rl.ppo.actor.discrete_lstm import DiscreteLSTMActor
 from jaxtrl.rl.ppo.actor.lstm import LSTMActor
 from jaxtrl.rl.ppo.actor.mlp import MLPActor
 from jaxtrl.rl.ppo.critic import lstm_critic_factory, mlp_critic_factory
@@ -8,6 +9,7 @@ from jaxtrl.rl.ppo.critic import lstm_critic_factory, mlp_critic_factory
 ACTOR_MAP = {
     "mlp": MLPActor,
     "lstm": LSTMActor,
+    "discrete_lstm": DiscreteLSTMActor,
 }
 
 
