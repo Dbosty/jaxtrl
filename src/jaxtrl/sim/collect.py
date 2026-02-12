@@ -4,10 +4,9 @@ import jax
 from flax import struct
 from jax import lax
 from jax import numpy as jnp
-from jaxtyping import Array, Key, PyTree
-
 from jaxtrl.sim.env import Observation
 from jaxtrl.sim.policy import Policy
+from jaxtyping import Array, Key, PyTree
 
 
 @struct.dataclass

@@ -12,6 +12,8 @@ from torchrl.objectives.value import GAE
 class Hyperparameters(PPOHyperparameters):
     critic_obs_key: tuple[str, ...] | str = ("agent_0", "observation")
     critic_obs_size: int | None = None
+    use_huber_loss: bool = False
+    huber_delta: float = 1.0
 
 
 class MAPPO:
@@ -123,6 +125,16 @@ class MAPPO:
 
                 if i == len(self.actors) - 1:
                     self.critic_optim.zero_grad()
+                    if self.hp.use_huber_loss:
+                        critic_loss = (
+                            th.nn.functional.huber_loss(
+                                td["state_value"],
+                                td["value_target"],
+                                delta=self.hp.huber_delta,
+                            )
+                            * self.hp.critic_coef
+                        )
+                        loss_vals["loss_critic"] = critic_loss
                     loss_vals["loss_critic"].backward()
                     if self.hp.clip_grad_norm:
                         th.nn.utils.clip_grad_norm_(
