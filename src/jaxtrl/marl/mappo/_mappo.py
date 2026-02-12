@@ -126,9 +126,10 @@ class MAPPO:
                 if i == len(self.actors) - 1:
                     self.critic_optim.zero_grad()
                     if self.hp.use_huber_loss:
+                        state_value = self.critic(td)["state_value"]
                         critic_loss = (
                             th.nn.functional.huber_loss(
-                                td["state_value"],
+                                state_value,
                                 td["value_target"],
                                 delta=self.hp.huber_delta,
                             )
