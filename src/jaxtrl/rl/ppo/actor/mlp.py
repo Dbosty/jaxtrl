@@ -110,7 +110,20 @@ class MLPActor(Policy):
 
         self.trl_actor_net = nn.Sequential(*layers)
 
-        self.trl_log_std = nn.Parameter(th.zeros(action_space.shape[0]))
+        class ScaleMod(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.log_std = nn.Parameter(th.zeros(action_space.shape[0]))
+
+            def forward(self, loc):
+                return (
+                    self.log_std.exp().repeat(loc.shape[0], 1)
+                    if loc.ndim > 1
+                    else self.log_std.exp()
+                )
+
+        self.trl_scale_mod = ScaleMod()
+        self.trl_log_std = self.trl_scale_mod.log_std
 
         self.trl_log_std.to(device)
 
@@ -121,11 +134,7 @@ class MLPActor(Policy):
         )
 
         scale_module = Mod(
-            lambda loc: (
-                self.trl_log_std.exp().repeat(loc.shape[0], 1)
-                if loc.ndim > 1
-                else self.trl_log_std.exp()
-            ),
+            self.trl_scale_mod,
             in_keys=["loc"],
             out_keys=["scale"],
         )
