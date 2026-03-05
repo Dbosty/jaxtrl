@@ -63,6 +63,10 @@ class MLPActor(Policy):
 
         return policy(obs_for_pi, key), context
 
+    def deterministic_sample(self, obs_for_pi: Array, context: PyTree):
+        policy = nnx.merge(self.fl_actor_graphdef, context.state)
+        return policy.deterministic_sample(obs_for_pi), context
+
     def init_context(self, _):
         return MLPContext(state=self.params_trl2fl())
 
@@ -206,6 +210,12 @@ class MLPActor(Policy):
             def __call__(self, obs, key):  # api in flax
                 out = self.mlp(obs)
                 out = self.sampler(out, key)
+
+                return out
+
+            def deterministic_sample(self, obs):
+                out = self.mlp(obs)
+                out = self.sampler.deterministic_sample(out)
 
                 return out
 

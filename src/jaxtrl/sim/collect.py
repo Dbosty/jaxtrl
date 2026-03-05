@@ -183,7 +183,7 @@ def collect_factory(
 
     _collect = jax.vmap(_collect, in_axes=(0, None, None, None))
 
-    remove_first_dim = lambda node: node.reshape(-1, *node.shape[2:])
+    remove_first_dim = lambda node: node.reshape(node.shape[0] * node.shape[1], *node.shape[2:])
 
     def collect(
         key: Key,
