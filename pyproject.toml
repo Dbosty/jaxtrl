@@ -5,18 +5,25 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jaxtrl"
 version = "0.1.0"
-requires-python = ">=3.8"
+description = "RL library enabling JAX-accelerated env stepping with PyTorch / TorchRL training"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Addison Kalanther" }]
+requires-python = ">=3.10"
 
+# torch and jax are intentionally not listed: install them separately
+# with the build (CUDA/CPU/Metal) that matches your platform.
 dependencies = [
-    #"torch",
-    #"jax",  
     "flax",
     "numpy",
     "jaxtyping",
     "torchrl",
-    "hydra-core", 
+    "hydra-core",
     "dacite",
 ]
+
+[project.urls]
+Repository = "https://github.com/adkala/jaxtrl"
 
 [tool.setuptools.packages.find]
 where = ["src"]

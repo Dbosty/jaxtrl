@@ -1,4 +1,5 @@
 # repo
+.vscode/
 .logs
 .checkpoints
 .data

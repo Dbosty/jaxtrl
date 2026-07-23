@@ -2,12 +2,34 @@
 
 Reinforcement learning library for JAX-based environments with PyTorch / TorchRL training. Supports single-agent and multi-agent algorithms.
 
+Personal research library built around one idea: collect rollouts in JAX (jit-compiled, vectorized env stepping) while keeping the training loop in PyTorch / TorchRL. Policies exist as paired Flax/Torch modules with weights synced between them, so you get JAX's simulation throughput without giving up TorchRL's loss modules, tensordict ergonomics, or the PyTorch debugging experience. Built for my own experiments (MPE, custom grid envs) rather than as a general framework — shared in case the JAX-collection / Torch-training bridge is useful to others.
+
 ## Algorithms
 
 - **PPO** - Proximal Policy Optimization
 - **IPPO** - Independent PPO (multi-agent)
 - **MAPPO** - Multi-Agent PPO (shared critic)
 - **HAPPO** - Heterogeneous-Agent PPO (importance-sampling weighted MAPPO)
+
+Actors: MLP and LSTM variants for continuous (`TanhNormal`) and discrete (`Categorical` / `MultiCategorical`) action spaces.
+
+## Installation
+
+```bash
+pip install -e .
+```
+
+`torch` and `jax` are not pinned as dependencies — install the builds (CUDA / CPU / Metal) that match your platform first.
+
+## Examples
+
+Runnable end-to-end scripts live in `envs/`:
+
+- `envs/cartpole/ppo.py` - single-agent PPO on CartPole
+- `envs/mpe/simple_spread.py` - HAPPO on MPE simple spread
+- `envs/pgj/` - PPO / IPPO / MAPPO / HAPPO on a custom grid environment
+
+Configuration is handled with Hydra; see `conf/`.
 
 ## Usage
 
