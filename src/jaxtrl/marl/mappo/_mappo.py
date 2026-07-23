@@ -46,12 +46,9 @@ class MAPPO:
         self.loss_modules = [
             ClipPPOLoss(
                 actor_network=actor.trl_actor,
-                # critic_network=self.critic,
                 clip_epsilon=self.hp.clip_epsilon,
                 entropy_bonus=bool(self.hp.entropy_eps),
                 entropy_coeff=self.hp.entropy_eps,
-                # critic_coeff=self.hp.critic_coef,
-                # loss_critic_type=self.hp.loss_critic_type,
             )
             for actor in self.actors[:-1]
         ]

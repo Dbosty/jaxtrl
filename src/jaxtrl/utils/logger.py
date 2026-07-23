@@ -8,12 +8,7 @@ class WandbLogger(_WandbLogger):
         caption = kwargs.pop("caption", None)
         format = kwargs.pop("format", "mp4")
         self.experiment.log(
-            {name: wandb.Video(video, fps=fps, format=format)},
-            **kwargs,
-        )
-        self.experiment.log(
             {name: wandb.Video(video, fps=fps, format=format, caption=caption)},
-            # step=step,
             **kwargs,
         )
 

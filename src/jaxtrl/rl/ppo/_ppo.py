@@ -26,12 +26,9 @@ class PPO:
         self,
         actor,
         critic,
-        # ,
         optim=None,
         scheduler=None,
-        # ,
         device=None,
-        # ,
         **hp,
     ):
         self.device = device or "cpu"
@@ -43,16 +40,16 @@ class PPO:
 
         ###
 
-        if optim is None:
-            self.parameters = list(self.actor.trl_actor.parameters()) + list(
-                self.critic.parameters()
-            )
-            optim = th.optim.Adam(self.parameters, lr=self.hp.lr)
+        self.parameters = list(self.actor.trl_actor.parameters()) + list(
+            self.critic.parameters()
+        )
 
+        if optim is None:
+            optim = th.optim.Adam(self.parameters, lr=self.hp.lr)
         self.optim = optim
 
         if scheduler is None:
-            self.scheduler = th.optim.lr_scheduler.LambdaLR(
+            scheduler = th.optim.lr_scheduler.LambdaLR(
                 self.optim, lambda _: 1.0
             )  # Constant LR scheduler
         self.scheduler = scheduler
@@ -79,13 +76,6 @@ class PPO:
         )
 
     def step(self, td):
-        # replacing this with deactivate_vmap = True
-        # td = self.critic(td)
-        # td["next"] = self.critic(td["next"])
-
-        # td["state_value"] = td["state_value"].detach()
-        # td["next", "state_value"] = td["next", "state_value"].detach()
-
         td["action_log_prob"] = (
             self.actor.trl_actor.get_dist(td).log_prob(td["action"]).detach()
         )
@@ -99,9 +89,7 @@ class PPO:
             for i in range(max(td.shape[0] // self.hp.sub_batch_size, 1)):
                 subdata = td[
                     self.hp.sub_batch_size * i : self.hp.sub_batch_size * (i + 1)
-                ]  # doing tbptt
-
-                # with set_recurrent_mode(True):  # recurrent mode is true by default
+                ]  # tbptt; recurrent modules run in recurrent mode by default
                 loss_vals = self.loss_module(subdata)
 
                 loss_value = (
