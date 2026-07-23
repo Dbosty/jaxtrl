@@ -5,18 +5,17 @@ import jax
 import torch as th
 from flax import nnx
 from flax.struct import dataclass
-from jaxtyping import Array, Key, PyTree
-from tensordict.nn import TensorDictModule as Mod
-from tensordict.nn import TensorDictSequential as Seq
-from torch import nn
-from torchrl.modules import ProbabilisticActor, TanhNormal
-
 from jaxtrl.model.jax import NormalSampler, TanhGaussianSampler
 from jaxtrl.model.jax import create_mlp_layers as fl_create_mlp_layers
 from jaxtrl.model.th import DiagonalNormal
 from jaxtrl.model.th import create_mlp_layers as th_create_mlp_layers
 from jaxtrl.sim.policy import Policy
 from jaxtrl.utils.gym import gym_to_torchrl_spec
+from jaxtyping import Array, Key, PyTree
+from tensordict.nn import TensorDictModule as Mod
+from tensordict.nn import TensorDictSequential as Seq
+from torch import nn
+from torchrl.modules import ProbabilisticActor, TanhNormal
 
 
 @dataclass

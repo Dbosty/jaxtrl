@@ -15,7 +15,7 @@ from torchrl.modules import LSTMModule, ProbabilisticActor
 
 from jaxtrl.model.jax import CategoricalSampler, MultiCategoricalSampler
 from jaxtrl.model.jax import create_mlp_layers as fl_create_mlp_layers
-from jaxtrl.model.th import MultiCategorical
+from jaxtrl.model.th import MultiCategorical, SingleCategorical
 from jaxtrl.model.th import create_mlp_layers as th_create_mlp_layers
 from jaxtrl.rl.ppo.actor.lstm import LSTMContext
 from jaxtrl.sim.policy import Policy
@@ -171,11 +171,12 @@ class DiscreteLSTMActor(Policy):
         # head
 
         # Compute head_dim and output size based on action space type
-        if isinstance(action_space, gym.spaces.MultiDiscrete):
+        is_multi_discrete = isinstance(action_space, gym.spaces.MultiDiscrete)
+        if is_multi_discrete:
             head_dim = list(action_space.nvec)
+            output_size = sum(head_dim)
         else:  # Discrete
-            head_dim = [action_space.n]
-        output_size = sum(head_dim)
+            output_size = action_space.n
 
         layers = th_create_mlp_layers(
             lstm_hidden_size,
@@ -197,14 +198,23 @@ class DiscreteLSTMActor(Policy):
 
         policy = Seq(create_is_init, lstm_mod, head_mod)
 
-        actor = ProbabilisticActor(
-            module=policy,
-            spec=action_spec,
-            in_keys=["logits"],
-            distribution_class=MultiCategorical,
-            distribution_kwargs={"head_dim": head_dim},
-            return_log_prob=True,
-        )
+        if is_multi_discrete:
+            actor = ProbabilisticActor(
+                module=policy,
+                spec=action_spec,
+                in_keys=["logits"],
+                distribution_class=MultiCategorical,
+                distribution_kwargs={"head_dim": head_dim},
+                return_log_prob=True,
+            )
+        else:
+            actor = ProbabilisticActor(
+                module=policy,
+                spec=action_spec,
+                in_keys=["logits"],
+                distribution_class=SingleCategorical,
+                return_log_prob=True,
+            )
 
         actor.to(device)
 

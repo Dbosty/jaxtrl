@@ -96,14 +96,44 @@ class ClippedTanhNormal(TanhNormal):
         super().__init__(loc, *args, **kwargs)
 
 
-class MultiCategorical(Distribution):
-    def __init__(self, concat_logits, head_dim):
-        cs_head_dim = np.cumsum(head_dim)
-        logits = [concat_logits[..., 0 : head_dim[0]]]
-        for i in range(1, len(head_dim)):
-            logits.append(concat_logits[..., cs_head_dim[i - 1] : cs_head_dim[i]])
+class SingleCategorical(Distribution):
+    """Wrapper around torch Categorical for use with ProbabilisticActor.
 
-        self.categorical = [Categorical(logits=logits[i]) for i in range(len(logits))]
+    Handles single discrete action spaces properly, where actions are
+    scalar integers rather than multi-dimensional.
+    """
+
+    def __init__(self, logits):
+        self.categorical = Categorical(logits=logits)
+
+    def log_prob(self, value):
+        return self.categorical.log_prob(value)
+
+    def sample(self, sample_shape=th.Size()):
+        return self.categorical.sample(sample_shape)
+
+    def rsample(self, sample_shape=th.Size()):
+        raise NotImplementedError
+
+    def cdf(self, value):
+        raise NotImplementedError
+
+    def entropy(self):
+        return self.categorical.entropy()
+
+    @property
+    def deterministic_sample(self):
+        return self.categorical.mode
+
+
+class MultiCategorical(Distribution):
+    def __init__(self, logits, head_dim):
+        cs_head_dim = np.cumsum(head_dim)
+        split_logits = [logits[..., 0 : head_dim[0]]]
+        for i in range(1, len(head_dim)):
+            split_logits.append(logits[..., cs_head_dim[i - 1] : cs_head_dim[i]])
+
+        self.categorical = [Categorical(logits=split_logits[i]) for i in range(len(split_logits))]
 
     def log_prob(self, value):
         if value.ndim == 1:

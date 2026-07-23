@@ -2,6 +2,8 @@ import jax
 import torch as th
 
 from jaxtrl.marl.mappo import MAPPO, Hyperparameters
+from jaxtrl.rl.ppo.actor.discrete_lstm import DiscreteLSTMActor
+from jaxtrl.rl.ppo.actor.discrete_mlp import DiscreteMLP
 from jaxtrl.rl.ppo.actor.lstm import LSTMActor
 from jaxtrl.rl.ppo.actor.mlp import MLPActor
 from jaxtrl.rl.ppo.critic import lstm_critic_factory, mlp_critic_factory
@@ -9,6 +11,8 @@ from jaxtrl.rl.ppo.critic import lstm_critic_factory, mlp_critic_factory
 ACTOR_MAP = {
     "mlp": MLPActor,
     "lstm": LSTMActor,
+    "discrete_mlp": DiscreteMLP,
+    "discrete_lstm": DiscreteLSTMActor,
 }
 
 
