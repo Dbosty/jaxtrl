@@ -1,8 +1,8 @@
 # jaxtrl
 
-Reinforcement learning library for JAX-based environments with PyTorch / TorchRL training. Supports single-agent and multi-agent algorithms.
+Personal research library for RL in JAX-based environments with PyTorch / TorchRL training. Supports single-agent and multi-agent algorithms.
 
-Personal research library built around one idea: collect rollouts in JAX (jit-compiled, vectorized env stepping) while keeping the training loop in PyTorch / TorchRL. Policies exist as paired Flax/Torch modules with weights synced between them, so you get JAX's simulation throughput without giving up TorchRL's loss modules, tensordict ergonomics, or the PyTorch debugging experience. Built for my own experiments (MPE, custom grid envs) rather than as a general framework — shared in case the JAX-collection / Torch-training bridge is useful to others.
+Rollouts are collected in JAX (jit-compiled, vectorized env stepping) while training happens in PyTorch / TorchRL. Policies exist as paired Flax/Torch modules with weights synced between them, so you get JAX's simulation throughput without giving up PyTorch / TorchRL niceties. Built for my own experiments (MPE, custom grid envs) — shared in case JAX-collection / Torch-training bridge is useful to others.
 
 ## Algorithms
 
