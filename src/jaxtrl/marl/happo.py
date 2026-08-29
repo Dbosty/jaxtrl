@@ -89,9 +89,9 @@ class HAPPO(MAPPO):
 
                 agents_loss_vals[i] = loss_vals.detach()
 
-            kappa *= (
+            kappa *= th.exp(
                 self.actors[i].trl_actor.get_dist(td).log_prob(td["action"]).detach()
-                / td["action_log_prob"]
+                - td["action_log_prob"]
             )[..., 0]
 
         log_dict = self._log_dict(tds, agents_loss_vals)
