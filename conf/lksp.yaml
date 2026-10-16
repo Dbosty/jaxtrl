@@ -1,0 +1,41 @@
+defaults:
+  - train: ppo # architecture the frozen pursuer_*.pt / evader_*.pt checkpoints were trained with -- must match level_k.py's run
+  - train@train_meta: lksp # architecture for the LKSP meta-controller (discrete action head)
+  - collect: base
+  - env_var: proj
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: null
+exp_name: null # wandb run / metrics-CSV name; defaults to "pgj_lksp" if unset
+device: cuda
+metrics_dir: metrics # per-stage CSV training curves (Figure 4 etc.), see CsvMetricsWriter
+
+# Paper Table 1: "frames per batch" 50,000 / "sub-batch size" 5,000. See
+# level_k.yaml for why this is overridden here rather than in the shared
+# conf/collect/base.yaml / conf/train/ppo.yaml. train_meta needs its own
+# override since it's a separate config tree from train (the meta-controller
+# is actually being trained here, unlike train's frozen loaded checkpoints,
+# so its batch settings matter for real this time).
+collect:
+  batch:
+    num_envs: 250 # 500 OOMs the LSTM critic backward pass on a 24GB 4090; 250 is confirmed safe
+    timesteps_per_env: 100
+  wandb:
+    sync_tensorboard: false # tensorboard isn't installed and isn't used anywhere here
+train:
+  rl_kwargs:
+    sub_batch_size: 5_000
+train_meta:
+  rl_kwargs:
+    sub_batch_size: 5_000
+
+level_k:
+  K: 4 # must match the K used when envs/pgj/level_k.py generated the checkpoints
+  checkpoint_dir: checkpoints/level_k # where pursuer_{llp,hlp}_L{0..K}.pt and evader_L{1..K}.pt live
+
+lksp:
+  checkpoint_dir: checkpoints/lksp

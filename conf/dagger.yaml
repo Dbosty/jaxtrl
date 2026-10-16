@@ -1,0 +1,43 @@
+defaults:
+  - train: ppo # architecture the frozen pursuer_*.pt / evader_*.pt checkpoints were trained with
+  - collect: base
+  - env_var: proj
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: 0
+exp_name: null # wandb run / metrics-CSV name; defaults to "pgj_dagger" if unset
+device: cuda
+metrics_dir: metrics
+
+# Paper Table 1: "frames per batch" 50,000 / "sub-batch size" 5,000. See
+# level_k.yaml for why this is overridden here rather than in the shared
+# conf/collect/base.yaml / conf/train/ppo.yaml. total_timesteps matches
+# pap.yaml/lksp.yaml's real run (~40M frames) for a fair comparison.
+collect:
+  batch:
+    num_envs: 250 # 500 OOMs the LSTM critic backward pass on a 24GB 4090; 250 is confirmed safe
+    timesteps_per_env: 100
+  total_timesteps: 160_000
+  wandb:
+    sync_tensorboard: false # tensorboard isn't installed and isn't used anywhere here
+
+level_k:
+  K: 4 # must match the K used when envs/pgj/level_k.py generated the checkpoints
+  checkpoint_dir: checkpoints/level_k # where pursuer_{llp,hlp}_L{0..K}.pt and evader_L{1..K}.pt live
+
+classifier:
+  net_arch: [64, 32, 16] # matches LKSP's meta-controller head_net_arch, for a fair comparison
+  activation_func: relu
+
+dagger:
+  lr: 3e-4
+  batch_size: 5_000
+  epochs_per_iter: 5 # supervised passes over the replay buffer, per DAgger iteration
+  buffer_capacity: 200_000 # DAgger nominally aggregates ALL data ever collected; a FIFO
+  # buffer of this size approximates that within a fixed memory budget --
+  # storing/retraining on the full ~40M-sample run would be infeasible.
+  checkpoint_dir: checkpoints/dagger

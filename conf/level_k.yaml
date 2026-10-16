@@ -1,0 +1,40 @@
+defaults:
+  - train: ppo
+  - collect: base
+  - env_var: proj
+  - _self_
+
+# Without this, Hydra chdirs into a fresh outputs/<date>/<time>/ directory
+# per run, which silently breaks the relative `checkpoint_dir` default below:
+# pap.py/lksp.py run later (their own fresh timestamped dir) would never see
+# checkpoints level_k.py just wrote.
+hydra:
+  job:
+    chdir: false
+
+seed: null
+exp_name_suffix: null # appended to every stage's wandb/CSV name, e.g. "_40M_8k"
+device: cuda
+metrics_dir: metrics # per-stage CSV training curves (Figure 4 etc.), see CsvMetricsWriter
+
+# Paper Table 1: "frames per batch" 50,000 / "sub-batch size" 5,000. The
+# shared conf/collect/base.yaml and conf/train/ppo.yaml don't match this
+# (they're generic example defaults used by other envs/pgj/*.py scripts
+# too), so override just for this run rather than edit those shared files.
+collect:
+  batch:
+    num_envs: 250 # 500 OOMs the LSTM critic backward pass on a 24GB 4090; 250 is confirmed safe
+    timesteps_per_env: 100
+  wandb:
+    sync_tensorboard: false # tensorboard isn't installed and isn't used anywhere here
+train:
+  rl_kwargs:
+    sub_batch_size: 5_000
+
+# Algorithm 1 (APEGS paper) hyperparameters
+level_k:
+  K: 4 # number of levels beyond level 0, matches the paper's experiments
+  eta_pursuer: 0.05 # L2 radius of B_eta(.) used when sampling a frozen pursuer opponent
+  eta_evader: 0.05 # L2 radius of B_eta(.) used when sampling a frozen evader opponent
+  alpha_n: 10 # N in A = {l/N : l in [N]}, the level-0 evader mixture weight set
+  checkpoint_dir: checkpoints/level_k

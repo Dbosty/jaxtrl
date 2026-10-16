@@ -1,0 +1,34 @@
+defaults:
+  - train: ppo
+  - collect: base
+  - env_var: proj
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: null
+exp_name: null # wandb run / metrics-CSV name; defaults to "pgj_pap" if unset
+device: cuda
+metrics_dir: metrics # per-stage CSV training curves (Figure 4 etc.), see CsvMetricsWriter
+
+# Paper Table 1: "frames per batch" 50,000 / "sub-batch size" 5,000. See
+# level_k.yaml for why this is overridden here rather than in the shared
+# conf/collect/base.yaml / conf/train/ppo.yaml.
+collect:
+  batch:
+    num_envs: 250 # 500 OOMs the LSTM critic backward pass on a 24GB 4090; 250 is confirmed safe
+    timesteps_per_env: 100
+  wandb:
+    sync_tensorboard: false # tensorboard isn't installed and isn't used anywhere here
+train:
+  rl_kwargs:
+    sub_batch_size: 5_000
+
+level_k:
+  K: 4 # must match the K used when envs/pgj/level_k.py generated the checkpoints
+  checkpoint_dir: checkpoints/level_k # where evader_L{1..K}.pt live
+
+pap:
+  checkpoint_dir: checkpoints/pap

@@ -1,0 +1,37 @@
+% Experimental setup paragraph, for insertion at the start of Section VI
+% (Analysis), before "1) Overall Performance:". Real values pulled from
+% conf/level_k.yaml, conf/pap.yaml, conf/lksp.yaml, conf/dagger.yaml,
+% conf/offline_classifier.yaml, conf/train/ppo.yaml, conf/train/lksp.yaml,
+% conf/evaluate.yaml, and pgj/env/conf/od.yaml + pgj/env/map/rust.yaml,
+% cross-checked against the real logged metrics/*_40M_8k/*.csv files used
+% for the checkpoints that produced Figures 3-10 and Table I (K=8).
+
+Before presenting results, we summarize our experimental configuration.
+All experiments use the $25\times25$ pursuit-evasion environment described
+in Section~V, with episodes capped at 100 timesteps and discount factor
+$\gamma=0.99$. We construct the bounded-rational policy library with
+$K{=}8$ using Algorithm~1: each level is obtained by perturbing the
+previous one within an $L_2$ ball of radius
+$\eta_{\text{pursuer}}=\eta_{\text{evader}}=0.05$ before training against
+it, the level-0 evader mixture is taken over $N{=}10$ weights between
+$\pi_{A^*}$ and $\pi_{\text{random}}$, and each of the resulting 17
+best-response stages (9 pursuer, 8 evader) is trained independently for
+$2.0\times10^7$ environment steps with PPO. PAP, RLBO's meta-controller,
+and both CBOs are then trained under a matched budget of
+$4.0\times10^7$ environment steps, collected in batches of 250 parallel
+environments over 100 steps per iteration. All level-$k$, PAP, and RLBO
+policies share an LSTM actor-critic with hidden size 64 and a $[64,32,16]$
+ReLU head, optimized with Adam ($\text{lr}=3\times10^{-4}$) under standard
+PPO hyperparameters ($\lambda_{\text{GAE}}=0.95$, clip $\epsilon=0.2$,
+entropy coefficient $5\times10^{-3}$, value coefficient $0.5$, 10 epochs
+per update, sub-batch size $50{,}000$); RLBO's meta-controller differs only
+in using a categorical head over the $K{+}1{=}9$ pretrained pursuer levels
+in place of PAP's continuous action space. CBO-On's classifier shares the
+same $[64,32,16]$ ReLU architecture and is trained via DAgger over a FIFO
+buffer of $200{,}000$ labeled transitions, with 5 supervised epochs per
+rollout batch, to the same $4.0\times10^7$-step budget; CBO-Off instead
+trains once over a fixed dataset collected from all $(K{+}1)\times K$
+policy pairs (500 environments $\times$ 100 steps each), for 50 epochs.
+Unless otherwise noted, all reported figures evaluate 500 environments per
+rollout, and error bars denote $\pm1$ standard error of the mean over
+episodes.

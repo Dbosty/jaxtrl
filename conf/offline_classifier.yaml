@@ -1,0 +1,31 @@
+defaults:
+  - train: ppo # architecture the frozen pursuer_*.pt / evader_*.pt checkpoints were trained with
+  - env_var: proj
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: 0
+device: cuda
+metrics_dir: metrics
+exp_name: null # wandb run / metrics-CSV name; defaults to "pgj_offline_classifier" if unset
+
+level_k:
+  K: 4
+  checkpoint_dir: checkpoints/level_k
+
+classifier:
+  net_arch: [64, 32, 16] # matches dagger.py's classifier, for a fair comparison
+  activation_func: relu
+
+offline:
+  dataset_num_envs: 500 # per (pursuer level, evader level) combination, (K+1)*K combos total
+  dataset_timesteps_per_env: 100
+  batch_size: 5_000 # matches dagger.py's minibatch size
+  epochs: 50
+  lr: 3e-4
+  eval_every: 5 # epochs between win-rate eval rollouts (always evals on epoch 1 too)
+  eval_num_envs: 250
+  checkpoint_dir: checkpoints/offline

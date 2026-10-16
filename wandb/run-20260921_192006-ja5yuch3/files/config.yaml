@@ -1,0 +1,137 @@
+_wandb:
+    value:
+        cli_version: 0.30.0
+        e:
+            2ueponqi66g6xk543dhgulbap5jc17g4:
+                args:
+                    - train=ppo
+                    - device=cuda
+                    - seed=1314756476
+                    - collect.total_timesteps=160_000
+                    - level_k.K=8
+                    - level_k.checkpoint_dir=checkpoints/level_k_40M_8k
+                    - pap.checkpoint_dir=checkpoints/pap_40M_8k
+                    - exp_name=pgj_pap_40M_8k
+                    - metrics_dir=metrics/pap_40M_8k
+                codePath: envs/pgj/pap.py
+                codePathLocal: envs/pgj/pap.py
+                cpu_count: 24
+                cpu_count_logical: 32
+                cudaVersion: "12.4"
+                disk:
+                    /:
+                        total: "697907806208"
+                        used: "648009641984"
+                email: daniel.k.bostwick@berkeley.edu
+                executable: /home/dbosty/miniconda3/envs/peg/bin/python
+                git:
+                    commit: 5d3aed1062d11d0feb9dc374fe9c93b1c1054438
+                    remote: git@github.com:adkala/jaxtrl.git
+                gpu: NVIDIA GeForce RTX 4090
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "25757220864"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-e2bd7ccd-27ea-ded5-e946-a88ed9c14eba
+                host: daniel
+                memory:
+                    total: "67263922176"
+                os: Linux-6.8.0-138-generic-x86_64-with-glibc2.35
+                program: /home/dbosty/peg/jaxtrl/envs/pgj/pap.py
+                python: CPython 3.11.16
+                root: /home/dbosty/peg/jaxtrl
+                startedAt: "2026-09-22T02:20:06.117414Z"
+                writerId: 2ueponqi66g6xk543dhgulbap5jc17g4
+        m: []
+        python_version: 3.11.16
+        t:
+            "1":
+                - 1
+                - 12
+                - 45
+                - 50
+                - 105
+            "2":
+                - 1
+                - 12
+                - 45
+                - 50
+                - 105
+            "3":
+                - 13
+                - 16
+                - 41
+            "4": 3.11.16
+            "5": 0.30.0
+            "12": 0.30.0
+            "13": linux-x86_64
+collect:
+    value:
+        batch:
+            num_envs: 250
+            timesteps_per_env: 100
+        save:
+            freq: 1000000
+        total_timesteps: 160000
+        visualize:
+            fps: 50
+            freq: 1000000
+            timesteps: 50
+        wandb:
+            offline: false
+            sync_tensorboard: false
+device:
+    value: cuda
+env_var:
+    value:
+        wandb:
+            entity: peu
+            project: apegs-acc
+exp_name:
+    value: pgj_pap_40M_8k
+level_k:
+    value:
+        K: 8
+        checkpoint_dir: checkpoints/level_k_40M_8k
+metrics_dir:
+    value: metrics/pap_40M_8k
+pap:
+    value:
+        checkpoint_dir: checkpoints/pap_40M_8k
+seed:
+    value: 1314756476
+train:
+    value:
+        actor: lstm
+        actor_kwargs:
+            distribution: tanh
+            distribution_kwargs:
+                tanh_loc: true
+            head_activation_func: relu
+            head_net_arch:
+                - 64
+                - 32
+                - 16
+            lstm_hidden_size: 64
+        critic: lstm
+        critic_kwargs:
+            head_activation_func: relu
+            head_net_arch:
+                - 64
+                - 32
+                - 16
+            lstm_hidden_size: 64
+        rl: ppo
+        rl_kwargs:
+            clip_epsilon: 0.2
+            critic_coef: 0.5
+            entropy_eps: 0.005
+            gae_lambda: 0.95
+            gamma: 0.99
+            loss_critic_type: smooth_l1
+            lr: 0.0003
+            max_grad_norm: 0.5
+            num_epochs: 10
+            sub_batch_size: 5000

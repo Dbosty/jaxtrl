@@ -1,0 +1,30 @@
+% Requires in your preamble:
+%   \usepackage{booktabs}
+%
+% Per-level win rate against each adversary level (K=8), for all 5
+% methods. Source: figures_acc/figure_5_K8.log (PAP/DFO/CBO-DAgger/
+% CBO-Offline) + figures_acc_new/table1_random_k8.txt (Random), evaluated
+% against the same fixed opponent per row via pursuer_winrate().
+% pi_bar_0 is the prescribed (non-trained) baseline evader; pi_bar_1..
+% pi_bar_8 are the 8 trained evader levels.
+
+\begin{table}[t]
+\centering
+\caption{Pursuer win rate by orchestrator/baseline against each adversary level $\bar\pi_k$, $K{=}8$.}
+\label{tab:winrate-per-level}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Adversary & PAP & RLBO & CBO-On & CBO-Off & Random \\
+\midrule
+$\bar\pi_0$ & 0.848 & 0.824 & 0.793 & 0.801 & 0.753 \\
+$\bar\pi_1$ & 0.930 & 0.915 & 0.796 & 0.695 & 0.478 \\
+$\bar\pi_2$ & 0.897 & 0.848 & 0.805 & 0.754 & 0.601 \\
+$\bar\pi_3$ & 0.932 & 0.944 & 0.883 & 0.823 & 0.642 \\
+$\bar\pi_4$ & 0.964 & 0.964 & 0.899 & 0.889 & 0.807 \\
+$\bar\pi_5$ & 0.949 & 0.944 & 0.879 & 0.801 & 0.629 \\
+$\bar\pi_6$ & 0.965 & 0.959 & 0.896 & 0.858 & 0.716 \\
+$\bar\pi_7$ & 0.959 & 0.959 & 0.858 & 0.803 & 0.631 \\
+$\bar\pi_8$ & 0.958 & 0.960 & 0.885 & 0.833 & 0.656 \\
+\bottomrule
+\end{tabular}
+\end{table}

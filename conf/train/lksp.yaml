@@ -1,0 +1,32 @@
+# Actor/critic profile for the LKSP meta-controller (Algorithm 3): same PPO
+# hyperparameters and critic as conf/train/ppo.yaml, but a discrete actor
+# head (Categorical over {0,...,K}, the choice of pre-trained pursuer level)
+# instead of the continuous TanhNormal actor used everywhere else. Kept as
+# its own standalone file (rather than extending ppo.yaml) because
+# DiscreteLSTMActor's constructor doesn't accept the `distribution` /
+# `distribution_kwargs` keys ppo.yaml's actor_kwargs carries.
+rl: ppo
+rl_kwargs:
+  entropy_eps: 5e-3
+  num_epochs: 10
+  sub_batch_size: 50_000
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  max_grad_norm: 0.5
+  critic_coef: 0.5
+  lr: 0.0003
+  loss_critic_type: smooth_l1
+
+actor: discrete_lstm
+critic: lstm
+
+actor_kwargs:
+  lstm_hidden_size: 64
+  head_net_arch: [64, 32, 16]
+  head_activation_func: relu
+
+critic_kwargs:
+  lstm_hidden_size: 64
+  head_net_arch: [64, 32, 16]
+  head_activation_func: relu

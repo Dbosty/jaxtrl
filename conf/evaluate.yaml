@@ -1,0 +1,40 @@
+defaults:
+  - train: ppo # architecture the frozen pursuer_*.pt / evader_*.pt / pap_*.pt checkpoints were trained with
+  - train@train_meta: lksp # architecture lksp_meta.pt was trained with
+  - env_var: dummy # evaluation doesn't train, so no wandb run is needed
+  - _self_
+
+hydra:
+  job:
+    chdir: false
+
+seed: 0
+device: cuda
+
+level_k:
+  K: 4
+  checkpoint_dir: checkpoints/level_k
+  alpha_n: 10 # must match level_k.py's run -- only used to rebuild the level-0 evader mixture
+
+pap:
+  checkpoint_dir: checkpoints/pap
+
+lksp:
+  checkpoint_dir: checkpoints/lksp
+
+classifier:
+  net_arch: [64, 32, 16] # must match dagger.py's run
+  activation_func: relu
+
+dagger:
+  checkpoint_dir: checkpoints/dagger
+
+offline:
+  checkpoint_dir: checkpoints/offline
+
+eval:
+  num_envs: 500 # no backward pass during eval, so this can be larger than training's 250; kept well below 1000 given jax.clear_caches() still leaves some headroom cost per fresh jit closure
+  figures_dir: figures
+  suffix: "" # appended to every figure filename, e.g. "_40M_8K" -> figure_2_40M_8K.png
+  tdo_delays: [0, 5, 10, 20, 40, 60, 100] # evaluate_acc.py's Figure 10 sweep, in trajectory steps
+  views: null # evaluate_multi_view.py: list of K values to evaluate the loaded checkpoint at, e.g. [5, 8]

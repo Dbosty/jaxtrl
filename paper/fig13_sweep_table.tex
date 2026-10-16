@@ -1,0 +1,22 @@
+% Requires in your preamble:
+%   \usepackage{booktabs}
+
+\begin{table}[t]
+\centering
+\caption{PAP vs.\ MPO win rate and expert action diversity as a function of the number of experts $K$. All values are derived from a single system trained once at $K{=}8$ (checkpoints/*\_40M\_8k), evaluated at each $K$ by restricting the opponent set and pursuer-level pool to the first $K$ levels --- no separate training run per $K$.}
+\label{tab:fig13-sweep}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+$K$ & PAP & MPO & Gap (PAP$-$MPO) & Action Variance \\
+\midrule
+1 & 0.889 & 0.870 & 0.020 & --- \\
+2 & 0.892 & 0.865 & 0.027 & 1.000 \\
+3 & 0.903 & 0.884 & 0.020 & 0.940 \\
+4 & 0.914 & 0.897 & 0.017 & 0.892 \\
+5 & 0.922 & 0.905 & 0.017 & 0.888 \\
+6 & 0.927 & 0.916 & 0.011 & 0.817 \\
+7 & 0.930 & 0.918 & 0.013 & 0.798 \\
+8 & 0.934 & 0.924 & 0.009 & 0.773 \\
+\bottomrule
+\end{tabular}
+\end{table}

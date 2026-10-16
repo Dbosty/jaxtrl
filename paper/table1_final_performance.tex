@@ -1,0 +1,24 @@
+% Requires in your preamble:
+%   \usepackage{booktabs}
+%
+% Final Expected Discounted Reward for each orchestrator/baseline, K=5
+% (reporting base). Source: figures_acc/fig6_K5.txt, evaluate_acc.py's
+% figure_6 (single mixed-opponent rollout per method, discounted return
+% = gamma^(win step) averaged over episodes, gamma=0.99).
+
+\begin{table}[t]
+\centering
+\caption{Final expected discounted reward by orchestrator/baseline, $K{=}5$.}
+\label{tab:final-performance}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Method & Expected Discounted Reward \\
+\midrule
+PAP      & 0.839 \\
+RLBO     & 0.833 \\
+CBO-On   & 0.750 \\
+CBO-Off  & 0.696 \\
+Random   & 0.559 \\
+\bottomrule
+\end{tabular}
+\end{table}

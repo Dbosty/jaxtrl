@@ -1,0 +1,1 @@
+{"_timestamp":1.7895899960776074e+09,"_step":1600,"train/accuracy":0.6301439833641053,"dagger/buffer_size":200000,"train/loss":0.8122573956847191,"rollout/evader_winrate":0.1839548647403717,"_runtime":1319,"_wandb":{"runtime":1319},"rollout/pursuer_winrate":0.8185521364212036}

@@ -1,0 +1,7 @@
+# expected_discounted_reward
+PAP	0.8536
+MPO	0.8478
+CBO-DAgger	0.754
+CBO-Offline	0.7034413506623545
+Random	0.5468463792993791
+

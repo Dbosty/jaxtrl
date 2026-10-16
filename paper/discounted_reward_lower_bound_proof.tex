@@ -1,0 +1,147 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{claim}{Claim}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\title{Why the Discounted-Reward Approximation is a Lower Bound}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Setup}
+
+Let $\gamma \in (0,1)$ be the discount factor, and let $L$ denote the (random) length,
+in environment timesteps, of a won episode. Let $p$ denote the pursuer's win rate.
+The true expected discounted reward is
+\[
+  \mathbb{E}\big[\mathbb{1}\{\text{won}\}\cdot \gamma^{L}\big]
+  \;=\; p \cdot \mathbb{E}\big[\gamma^{L} \,\big|\, \text{won}\big],
+\]
+while the approximation used when only $\texttt{ep\_len\_mean} := \mathbb{E}[L \mid \text{won}]$
+is available (rather than the full distribution of $L$) is
+\[
+  p \cdot \gamma^{\,\mathbb{E}[L\mid\text{won}]}.
+\]
+Since the win-rate factor $p$ is common to both expressions, the question reduces
+entirely to the conditional distribution of $L$ given a win. We show
+\begin{equation}
+  \mathbb{E}[\gamma^{L}] \;\ge\; \gamma^{\,\mathbb{E}[L]} \tag{$\star$}
+\end{equation}
+(expectations below implicitly conditioned on winning), so the approximation never
+overstates the true discounted reward.
+
+\section*{Step 1: $f(x) = \gamma^x$ is strictly convex}
+
+\begin{lemma}
+For $\gamma \in (0,1)$, the function $f(x) = \gamma^{x} = e^{x\ln\gamma}$ is strictly
+convex on all of $\mathbb{R}$.
+\end{lemma}
+
+\begin{proof}
+Differentiating twice,
+\[
+  f'(x) = (\ln\gamma)\,\gamma^{x}, \qquad
+  f''(x) = (\ln\gamma)^{2}\,\gamma^{x}.
+\]
+Since $\gamma \in (0,1)$ we have $\ln\gamma \neq 0$, so $(\ln\gamma)^2 > 0$; and
+$\gamma^{x} > 0$ for every real $x$. Hence $f''(x) > 0$ for all $x \in \mathbb{R}$,
+which implies $f$ is strictly convex on $\mathbb{R}$.
+\end{proof}
+
+\section*{Step 2: Convex functions lie above their tangent lines}
+
+\begin{lemma}[Supporting tangent line]
+Let $\phi$ be convex and differentiable on $\mathbb{R}$, and fix $x_0 \in \mathbb{R}$.
+Then for every $x \in \mathbb{R}$,
+\[
+  \phi(x) \;\ge\; \phi(x_0) + \phi'(x_0)(x - x_0).
+\]
+\end{lemma}
+
+\begin{proof}
+By convexity, for $t \in (0,1]$,
+\[
+  \phi\big((1-t)x_0 + t x\big) \;\le\; (1-t)\,\phi(x_0) + t\,\phi(x).
+\]
+Subtracting $\phi(x_0)$ from both sides and dividing by $t$,
+\[
+  \frac{\phi\big(x_0 + t(x - x_0)\big) - \phi(x_0)}{t} \;\le\; \phi(x) - \phi(x_0).
+\]
+The left-hand side is the difference quotient of $\phi$ at $x_0$ in the direction
+$(x - x_0)$. Letting $t \to 0^{+}$ and using differentiability of $\phi$ at $x_0$,
+the left-hand side converges to $\phi'(x_0)(x - x_0)$, giving
+\[
+  \phi'(x_0)(x - x_0) \;\le\; \phi(x) - \phi(x_0),
+\]
+which rearranges to the claimed inequality.
+\end{proof}
+
+\section*{Step 3: Jensen's inequality}
+
+\begin{claim}[Jensen's inequality for $f = \gamma^{(\cdot)}$]
+For any random variable $L$ with finite mean, $\mathbb{E}[\gamma^{L}] \ge \gamma^{\mathbb{E}[L]}$.
+\end{claim}
+
+\begin{proof}
+Apply Step 2 with $\phi = f$, $x_0 = \mathbb{E}[L]$, and $x = L$ (for every realization
+of $L$):
+\[
+  f(L) \;\ge\; f(\mathbb{E}[L]) + f'(\mathbb{E}[L])\big(L - \mathbb{E}[L]\big).
+\]
+Taking expectations of both sides and using linearity of expectation,
+\[
+  \mathbb{E}[f(L)] \;\ge\; f(\mathbb{E}[L]) + f'(\mathbb{E}[L])\underbrace{\big(\mathbb{E}[L] - \mathbb{E}[L]\big)}_{=\,0}
+  \;=\; f(\mathbb{E}[L]).
+\]
+That is, $\mathbb{E}[\gamma^{L}] \ge \gamma^{\mathbb{E}[L]}$, which is $(\star)$.
+Multiplying both sides by $p \ge 0$ preserves the inequality and yields the original
+claim:
+\[
+  \mathbb{E}\big[\mathbb{1}\{\text{won}\}\cdot\gamma^{L}\big] \;\ge\; p\cdot\gamma^{\,\mathbb{E}[L\mid\text{won}]}. \qedhere
+\]
+\end{proof}
+
+\section*{Equality condition}
+
+Equality in Step 2 holds only where $\phi$ is affine between $x_0$ and $x$; since
+$f'' > 0$ everywhere, $f$ is \emph{strictly} convex, so its tangent line at $x_0$
+touches $f$ only at $x = x_0$ itself. Consequently, equality in $(\star)$ holds if
+and only if $L = \mathbb{E}[L]$ almost surely --- every winning episode takes exactly
+the same number of steps. For a stochastic policy in a stochastic environment this
+never holds exactly, so the bound is strict in practice: the approximation
+understates the true discounted reward, by an amount that grows with the variance
+of win-episode lengths.
+
+\begin{remark}[Two-point sanity check]
+Suppose half of all wins take $a$ steps and half take $b$ steps, $a \neq b$. Then
+\[
+  \mathbb{E}[\gamma^{L}] = \tfrac12\gamma^{a} + \tfrac12\gamma^{b},
+  \qquad
+  \gamma^{\mathbb{E}[L]} = \gamma^{(a+b)/2} = \sqrt{\gamma^{a}\gamma^{b}}.
+\]
+This is exactly the AM--GM inequality applied to the positive numbers $\gamma^a$ and
+$\gamma^b$: the arithmetic mean is always at least the geometric mean, with equality
+iff $a = b$ --- matching the general equality condition above via an elementary
+route.
+\end{remark}
+
+\begin{remark}[Magnitude in practice]
+Since $f''(x) = (\ln\gamma)^2\gamma^x \to 0$ as $\gamma \to 1$, the convexity of
+$f$ --- and hence the size of the gap in $(\star)$ --- is weak at $\gamma = 0.99$.
+Combined with the short, low-variance win-episode lengths observed in this
+environment (mean around 6--8 steps), this is why the approximation tracked the
+exact values so closely wherever both were available: the bound is directionally
+guaranteed, but its magnitude is small under these conditions.
+\end{remark}
+
+\end{document}

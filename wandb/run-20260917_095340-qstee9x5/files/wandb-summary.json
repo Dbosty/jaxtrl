@@ -1,0 +1,1 @@
+{"_timestamp":1.7896643892416282e+09,"_step":49,"_wandb":{"runtime":368},"_runtime":368,"train/loss":1.0512711203098297,"train/accuracy":0.5118229880928993,"rollout/pursuer_winrate":0.7343060970306396}

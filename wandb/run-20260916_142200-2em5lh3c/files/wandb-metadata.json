@@ -1,0 +1,50 @@
+{
+  "os": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "python": "CPython 3.11.16",
+  "startedAt": "2026-09-16T21:22:00.428748Z",
+  "args": [
+    "train=ppo",
+    "device=cuda",
+    "collect.total_timesteps=400_000",
+    "level_k.K=4",
+    "level_k.checkpoint_dir=checkpoints/level_k",
+    "pap.checkpoint_dir=checkpoints/pap_100M",
+    "metrics_dir=metrics/pap_100M",
+    "exp_name=pgj_pap_100M"
+  ],
+  "program": "/home/dbosty/peg/jaxtrl/envs/pgj/pap.py",
+  "codePath": "envs/pgj/pap.py",
+  "codePathLocal": "envs/pgj/pap.py",
+  "git": {
+    "remote": "git@github.com:adkala/jaxtrl.git",
+    "commit": "5d3aed1062d11d0feb9dc374fe9c93b1c1054438"
+  },
+  "email": "daniel.k.bostwick@berkeley.edu",
+  "root": "/home/dbosty/peg/jaxtrl",
+  "host": "daniel",
+  "executable": "/home/dbosty/miniconda3/envs/peg/bin/python",
+  "cpu_count": 24,
+  "cpu_count_logical": 32,
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "697907806208",
+      "used": "595774070784"
+    }
+  },
+  "memory": {
+    "total": "67263922176"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4090",
+      "memoryTotal": "25757220864",
+      "cudaCores": 16384,
+      "architecture": "Ada",
+      "uuid": "GPU-e2bd7ccd-27ea-ded5-e946-a88ed9c14eba"
+    }
+  ],
+  "cudaVersion": "12.4",
+  "writerId": "ud4ys5f0gb95rzjo7tbz8xfkeoz8dugk"
+}

@@ -1,0 +1,25 @@
+% Requires in your preamble:
+%   \usepackage{algorithm}
+%   \usepackage{algpseudocode}
+%   \usepackage{amsmath}   % for \mathrm, \sim, etc. (usually already loaded)
+
+\begin{algorithm}
+\caption{DAgger Classifier Training (Pursuit-Level Selection)}
+\label{alg:dagger}
+\begin{algorithmic}[1]
+\Require Frozen pursuer levels $(\pi_{\mathrm{LLP}}^{(k)}, \pi_{\mathrm{HLP}}^{(k)})$ for $k \in \{1,\dots,K\}$ and frozen evader levels $\pi_{\mathrm{EDR}}^{(k)}$ for $k \in \{1,\dots,K\}$, both from Algorithm~1
+\State Initialize classifier $\pi_{\mathrm{CLS}}$ (MLP, Categorical over $\{1,\dots,K\}$) with random weights
+\State Initialize empty FIFO replay buffer $\mathcal{B}$ of capacity $C$
+\For{iteration $i = 1, 2, \dots, N$}
+    \State Sample evader level $\ell \sim \mathrm{Unif}(\{1,\dots,K\})$ for this batch of episodes
+    \State Roll out $\left(\pi_{\mathrm{LLP}}^{(\pi_{\mathrm{CLS}}(h_t))}, \pi_{\mathrm{HLP}}^{(\pi_{\mathrm{CLS}}(h_t))}\right)$ against evader level $\ell$, deploying whichever pursuer level $\pi_{\mathrm{CLS}}$ selects at each timestep $t$, given the observation history $h_t$
+    \State Collect $(h_t, \ell)$ for every visited timestep $t$ --- $\ell$ is exact, since it was chosen above, not estimated
+    \State Add all $(h_t, \ell)$ pairs to $\mathcal{B}$, evicting the oldest entries if $|\mathcal{B}| > C$
+    \For{epoch $= 1, \dots, E$}
+        \For{minibatch $(h, \ell)$ sampled from $\mathcal{B}$}
+            \State Update $\pi_{\mathrm{CLS}}$ by gradient descent on cross-entropy $\mathrm{loss}(\pi_{\mathrm{CLS}}(h), \ell)$
+        \EndFor
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
